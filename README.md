@@ -1,228 +1,186 @@
-# 🎨 UI-Butler 🤵
+# Conference site
 
-# Advanced Full-Stack Monorepo Architecture with Nest.js (Microservices) & Next.js (Frontend Microservices)
+Public site, paper submission, peer review, registration and payment for an
+academic conference. One Next.js app, one Postgres database.
 
-## 📚 Educational Repository Overview
-
-This repository serves as a **comprehensive educational resource demonstrating** a **production-ready**, full-stack
-monolithic architecture using **Nest.js microservices** and **Next.js Frontend Microservices** within a **Turborepo** as
-a
-meneger. It showcases **industry best practices**, advanced architectural patterns, and modern development workflows.
-
-### 🎯 Purpose
-
-- Provide a complete reference implementation of microservices architecture
-- Demonstrate real-world patterns and best practices
-- Serve as a learning resource for developers at all levels
-- Showcase advanced features and integrations
-- Illustrate various deployment strategies
-
-### 🏗️ Architecture Overview
-
-```mermaid
-graph TD
-    MF1[Auth Frontend Microservice] <--> Gateway[API Gateway]
-    MF2[Main App Frontend Microservice] <--> Gateway[API Gateway]
-    Gateway <--> auth-microservice
-    Gateway <--> analytics-microservice
-    Gateway <--> billing-microservice
-    Gateway <--> components-microservice
-    Gateway <--> executions-microservice
-    Gateway <--> projects-microservice
-    Gateway <--> users-microservice
-    Gateway <--> workflows-microservice
-    auth-microservice <--> users-microservice
-    workflows-microservice --> executions-microservice
-    MF3[Landing Page Frontend Microservice] --> MF1[Auth Frontend Microservice]
-    MF1[Auth Frontend Microservice] --> MF2[Main App Frontend Microservice]
-```
-
-## 🚀 Key Features
-
-### Backend Architecture
-
-- **Microservices Framework**: Nest.js-based services with modular architecture
-- **Inter-Service Communication**: gRPC protocol implementation
-- **Caching System**: Custom Redis-based caching implementation
-- **Authentication**: JWT and Passport.js integration
-- **Rate Limiting**: Redis-based request rate limiting
-- **Job Processing**: BullMQ integration for async
-  operations [recomended only for dev because of large amount of redis calls in production]
-- **AI Integration**: `GEMINI` AI response streaming
-- **Workflow Management**: Custom AI workflow handling for planning the execution
-- **Microservices proxing**: Implementing proxing from API-GATEWAY to components microservice
-- **Hybrid backend microservice**: Generated a Nest.js app that is a hybrid application. It serves as an HTTP server and
-  as a microservice.
-- **Containerization**: Containerizing microservices with docker and docker-compose
-
-### Frontend Implementation
-
-- **Frontend Microservices**: Next.js-based modular frontend architecture
-- **SSE**: Showcased how to handle Server-Sent Events on the frontend and backend for instantaneous streaming the AI
-  responses
-- **Workflow Visualization**: React-flow implementation
-- **State Management**: Advanced state management patterns
-- **API Integration**: Comprehensive API service integration
-
-## 🛠️ Technology Stack
-
-- **Monorepo Management**: Turborepo
-- **Backend Framework**: Nest.js
-- **Frontend Framework**: Next.js
-- **Language**: TypeScript
-- **Communication**: gRPC, REST
-- **Caching**: Redis
-- **Queue**: BullMQ
-- **Database**: PostgreSQL
-- **Testing**: Jest
-- **Deployment**: Docker, PM2, turbo
-- **CI/CD**: GitHub Actions
-- **Auth**: JWT, passport.js
-
-## 📦 Repository Structure
+## Architecture
 
 ```
-├── apps/
-│   ├── api/ (deprecated -> monolith nest.js app)
-│   ├── api-v2/
-│   │   ├── libs/
-│   │   │   ├── common/
-│   │   │   ├── database/
-│   │   │   ├── proto/
-│   │   │   └── redis/
-│   │   ├── services/
-│   │   │   ├── analytics-service/
-│   │   │   ├── api-gateway/
-│   │   │   ├── auth-service/
-│   │   │   ├── billing-service/
-│   │   │   ├── components-service/
-│   │   │   ├── execution-service/
-│   │   │   ├── projects-service/
-│   │   │   ├── users-service/
-│   │   │   └── workflows-service/
-│   │   └── README.md
-│   ├── web/
-│   ├── web-auth/
-│   └── web-landing-page/
-│
-└── packages/
-    ├── config-eslint/
-    ├── config-tailwindcss/
-    ├── config-typescript/
-    ├── prompts/
-    ├── tasks-registry/
-    ├── types/
-    └── ui/
+apps/web/                      the entire application
+  src/app/
+    (public)/                  landing, CFP, speakers, programme, fees, CMS pages
+    (auth)/                    sign in / sign up
+    (dashboard)/               author + attendee area
+    admin/                     committee: submissions, decisions, registrations, roles
+    api/
+      auth/[...all]/           Better Auth handler
+      webhooks/midtrans/       payment notifications
+      cron/                    email retries + payment reconciliation
+      admin/registrations.csv  attendee export
+  src/server/
+    db/                        Drizzle schema, client, seed
+    auth/                      Better Auth config + session helpers
+    conference/                active-edition queries, deadline helpers
+    submissions/               queries, state machine, server actions
+    registrations/             queries, server actions
+    payment/                   Midtrans client + payment service
+    email/                     Resend sender, retry queue, React Email templates
+    storage/                   presigned S3 uploads/downloads
+
+packages/ui/                   shared shadcn components
+packages/config-*/             eslint, tailwind, tsconfig presets
 ```
 
-## 🚦 Getting Started
+There is no API gateway, no message broker and no Redis. Server Actions and
+Route Handlers are the backend; the only background job is a single cron route.
 
-### Prerequisites
+### Stack
 
-- Node.js >= 22
-- Docker
-- Redis (Upstash)
-- PostgreSQL
-- pnpm
-- `GEMINI` API key
+| Concern   | Choice                                             |
+| --------- | -------------------------------------------------- |
+| Framework | Next.js 15 (App Router), React 19, TypeScript      |
+| Database  | PostgreSQL + Drizzle ORM                           |
+| Auth      | Better Auth (email + password, email verification) |
+| Email     | Resend + React Email                               |
+| Payments  | Midtrans Snap (QRIS, VA, e-wallet, card)           |
+| Files     | Any S3-compatible bucket, presigned direct upload  |
+| Styling   | Tailwind + shadcn/ui                               |
 
-### Installation
+## Getting started
 
-1. Clone the repository:
+Requires Node 22+, pnpm 10 and a Postgres database.
 
-   ```bash
-   git clone https://github.com/RiP3rQ/ui-butler-turborepo.git
-   cd ui-butler-turborepo
-   ```
+```bash
+pnpm install
+cp .env.example .env          # fill in the values, see below
+cp .env .env.local            # apps/web reads its own .env too
+pnpm db:migrate               # apply migrations
+pnpm db:seed                  # demo conference with tracks, tiers, schedule
+pnpm dev                      # http://localhost:3000
+```
 
-2. Install dependencies:
+Sign up through the UI, then grant yourself the committee role:
 
-   ```bash
-   pnpm install
-   ```
+```sql
+UPDATE "user" SET role = 'admin' WHERE email = 'you@example.com';
+```
 
-3. Configure environment variables for backend microservice and frontend microservice:
+Seeded dates are relative to the day you run `db:seed`, so submissions are
+always open and the conference is always a few months out.
 
-   ```bash
-   cp .env.example .env
-   ```
+### Environment
 
-4. Start development environment:
-   ```bash
-   pnpm dev
-   ```
+Every variable is validated at boot in [env.ts](apps/web/src/server/env.ts) —
+a missing one fails loudly rather than at 2am. See
+[.env.example](.env.example) for the annotated list.
 
-## 🚢 Deployment Strategies
+External services you need accounts for:
 
-### 1. Docker Deployment
+- **Resend** — verify your sending domain, then set `RESEND_API_KEY` and `EMAIL_FROM`.
+- **Midtrans** — sandbox keys from the dashboard. Set the Payment Notification
+  URL to `{NEXT_PUBLIC_APP_URL}/api/webhooks/midtrans`.
+- **S3-compatible bucket** — AWS S3, Cloudflare R2, Supabase Storage or MinIO.
+  Keep the bucket private; the app signs every read and write.
 
-Detailed documentation for containerized deployment:
+## How the domain works
 
-- Container orchestration
-- Service configuration
-- Network setup
-- Automatic deployment using Github Actions
+### Submissions
 
-### 2. PM2 Ecosystem
+Papers move through an explicit state machine
+([state.ts](apps/web/src/server/submissions/state.ts)):
 
-Guide for PM2-based deployment:
+```
+draft ─┬─> submitted ─┬─> under_review ─┬─> accepted ──> camera_ready_submitted
+       │              │                 ├─> revision_requested ──> submitted
+       │              │                 └─> rejected
+       └─> withdrawn  └─> …
+```
 
-- Process management
-- Ecosystem handling
-- Automatic deployment using Github Actions
+Authors can edit only in `draft` and `revision_requested`. Uploads are
+versioned — a re-upload never overwrites the file a reviewer already read.
+The reference (`ICRST-0001`) is derived from the row id, so it is unique
+without a counter table.
 
-### 3. Turborepo with PM2
+### Registration and payment
 
-Advanced deployment strategy combining:
+Tiers are date-gated: the ones on offer are those whose `validFrom`/`validUntil`
+window contains "now" and whose quota is not exhausted. The price is **snapshot
+onto the registration** at creation, so editing a tier later never rewrites an
+issued invoice.
 
-- Build optimization
-- Service orchestration
-- Resource management
-- Performance tuning
-- Automatic deployment using Github Actions
+Payment is the only part with an external moving piece:
 
-## 🧪 Testing
+1. `createRegistration` reserves the place (`pending_payment`) and opens a
+   Midtrans Snap transaction, then emails payment instructions.
+2. The attendee pays on Midtrans' hosted page.
+3. Midtrans POSTs to `/api/webhooks/midtrans`. The SHA-512 signature is verified
+   before anything else; a bad signature is dropped with a 200 so Midtrans does
+   not retry it for 24 hours.
+4. `applyNotification` is idempotent and never walks a settled payment
+   backwards, so replayed or out-of-order callbacks are safe.
+5. On `paid`, the registration flips and a receipt is emailed.
 
-- Service-level test examples
-- Component testing strategies
-- Mocking patterns
-- Test coverage requirements
+Each retry gets a fresh `order_id` (`INV-…-1`, `INV-…-2`) because Midtrans never
+allows one to be reused.
 
-## 📈 Performance Optimization
+### Email
 
-- Turborepo caching strategies
-- Build optimization techniques
-- Service performance tuning
-- Caching implementation
-- Rate limiting implementation
-- Asynchronous processing of workflows using BullMQ
+Every send is written to `email_log` **before** it goes out, together with the
+template key and its props. If the send fails, the row stays `failed` and the
+cron route re-renders it from the stored props and tries again, up to three
+times. That is the entire durability story — no queue, no Redis.
 
-## 🔒 Security Implementations
+### The cron route
 
-- JWT authentication
-- Rate limiting
-- CORS configuration
-- Form validation
-- Security headers
-- SSL/TLS setup
+Point any scheduler at `GET /api/cron` every ~15 minutes:
 
-## 🤝 Contributing
+```
+*/15 * * * * curl -H "Authorization: Bearer $CRON_SECRET" https://your-site/api/cron
+```
 
-We welcome contributions! If you have any tips how to improve this repo, just create a PR.
+It retries failed emails and reconciles payments whose webhook never arrived
+(it asks Midtrans directly what happened to each `pending` order). Set
+`CRON_SECRET` to require the header; leave it empty and the route is open.
 
-## 📄 License
+## Commands
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+| Command            | What it does                               |
+| ------------------ | ------------------------------------------ |
+| `pnpm dev`         | Dev server on :3000                        |
+| `pnpm build`       | Production build                           |
+| `pnpm type-check`  | `tsc --noEmit` across the workspace        |
+| `pnpm lint`        | ESLint                                     |
+| `pnpm db:generate` | Generate a migration from schema changes   |
+| `pnpm db:migrate`  | Apply migrations                           |
+| `pnpm db:push`     | Push schema without a migration (dev only) |
+| `pnpm db:studio`   | Drizzle Studio                             |
+| `pnpm db:seed`     | Seed the demo conference                   |
 
-## 👥 Maintainers
+Preview email templates in a browser with
+`pnpm --filter web email:dev` (http://localhost:3030).
 
-- [RiP3rQ](https://github.com/RiP3rQ)
+## Notes and trade-offs
 
----
+- **Public pages render dynamically.** Their content lives in the database so
+  the committee can edit it, and caching would make edits invisible. If traffic
+  ever justifies it, switch to `revalidate` plus `revalidatePath` on admin saves.
+- **Session cookie caching is off** on purpose. It would embed `role` in the
+  cookie, so revoking admin would not take effect for another five minutes.
+- **Markdown page bodies are rendered without sanitising.** They are authored by
+  admins only. Sanitise in [markdown.ts](apps/web/src/lib/markdown.ts) if page
+  editing is ever opened up further.
+- **Amounts are whole rupiah integers.** IDR has no minor units and Midtrans
+  rejects fractional `gross_amount`.
 
-## 💡 Support
+## Not built yet
 
-For support, please:
+Deliberately out of scope for this pass:
 
-1. Create an issue
-2. Contact me through my website -> [Website](https://riperq.pro/)
+- Admin CRUD for pages, speakers, schedule, tracks and tiers — the schema and
+  the public rendering are done, but the committee still edits these via SQL or
+  the seed. This is the biggest remaining gap.
+- Reviewer assignment UI (`assignReviewer` exists as an action; nothing calls it)
+  and the reviewer's own review-submission screen.
+- PDF invoices and certificates.
+- Bulk decision import/export for the programme committee.
+- Bahasa Indonesia translations.
