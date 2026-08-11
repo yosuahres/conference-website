@@ -1,59 +1,35 @@
 import type { Metadata } from "next";
-import localFont from "next/font/local";
-import "@shared/ui/globals.css";
-import { SidebarProvider } from "@shared/ui/components/ui/sidebar";
-import { cookies } from "next/headers";
-import { ToastProvider } from "@shared/ui/providers/toast-provider";
-import { type JSX } from "react";
-import { QueryProvider } from "@/providers/query-provider";
-import { AppSidebar } from "@/components/sidebar/app-sidebar";
-import { DialogsComponentsProvider } from "@/providers/dialogs-provider";
-import { getUserProjects } from "@/actions/projects/server-actions";
+import { Inter } from "next/font/google";
+import { NuqsAdapter } from "nuqs/adapters/next/app";
+import { Toaster } from "sonner";
 
-const geistSans = localFont({
-  src: "./fonts/GeistVF.woff",
-  variable: "--font-geist-sans",
-  weight: "100 900",
-});
-const geistMono = localFont({
-  src: "./fonts/GeistMonoVF.woff",
-  variable: "--font-geist-mono",
-  weight: "100 900",
-});
+import { getActiveConference } from "@/server/conference/queries";
+import "./globals.css";
 
-export const metadata: Metadata = {
-  title: "UI-Butler",
-  description:
-    "UI-Butler is a UI library for React applications built by @RiP3rQ!",
-};
+const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 
-export default async function RootLayout({
+export async function generateMetadata(): Promise<Metadata> {
+  const conference = await getActiveConference();
+  return {
+    title: {
+      default: conference?.name ?? "Conference",
+      template: `%s · ${conference?.shortName ?? conference?.name ?? "Conference"}`,
+    },
+    description: conference?.tagline ?? conference?.description ?? undefined,
+    metadataBase: process.env.NEXT_PUBLIC_APP_URL
+      ? new URL(process.env.NEXT_PUBLIC_APP_URL)
+      : undefined,
+  };
+}
+
+export default function RootLayout({
   children,
-}: Readonly<{
-  children: React.ReactNode;
-}>): Promise<JSX.Element> {
-  const [cookieStore, userProjects] = await Promise.all([
-    cookies(),
-    getUserProjects(),
-  ]);
-
-  const defaultOpen = cookieStore.get("sidebar:state")?.value === "true";
-
+}: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
-        <QueryProvider>
-          <SidebarProvider defaultOpen={defaultOpen}>
-            <AppSidebar userProjects={userProjects} />
-            <main className="min-h-screen h-full w-full relative bg-muted">
-              {children}
-            </main>
-            <ToastProvider />
-            <DialogsComponentsProvider />
-          </SidebarProvider>
-        </QueryProvider>
+    <html lang="en" suppressHydrationWarning>
+      <body className={`${inter.variable} font-sans`}>
+        <NuqsAdapter>{children}</NuqsAdapter>
+        <Toaster position="top-center" richColors />
       </body>
     </html>
   );
