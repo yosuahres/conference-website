@@ -3,32 +3,40 @@ import Link from "next/link";
 import { Button } from "@shared/ui/components/ui/button";
 import { SubmissionStatusBadge } from "@/components/status-badge";
 import { formatDate } from "@/lib/format";
-import { requireUser } from "@/server/auth/session";
+import { api } from "@/lib/api";
 import {
-  requireActiveConference,
-  isSubmissionOpen,
-} from "@/server/conference/queries";
-import { getMySubmissions } from "@/server/submissions/queries";
+  forwardedCookies,
+  getActiveConference,
+  requireUser,
+} from "@/lib/server-api";
 
 export const metadata = { title: "Submissions" };
 
 export default async function SubmissionsPage() {
-  const user = await requireUser();
-  const conference = await requireActiveConference();
-  const submissions = await getMySubmissions(user.id, conference.id);
+  await requireUser();
+  const conference = await getActiveConference();
+  if (!conference) {
+    return (
+      <p className="text-sm text-muted-foreground">
+        No active conference is configured yet.
+      </p>
+    );
+  }
+
+  const submissions = await api.submissions.listMine(await forwardedCookies());
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-semibold tracking-tight">Submissions</h1>
-        {isSubmissionOpen(conference) ? (
+        {conference.submissionOpen ? (
           <Button asChild size="sm">
             <Link href="/dashboard/submissions/new">New submission</Link>
           </Button>
         ) : null}
       </div>
 
-      {!isSubmissionOpen(conference) ? (
+      {!conference.submissionOpen ? (
         <p className="rounded-md border border-amber-200 bg-amber-50 p-4 text-sm dark:border-amber-900 dark:bg-amber-950/40">
           Submissions are closed. Existing papers remain visible below.
         </p>

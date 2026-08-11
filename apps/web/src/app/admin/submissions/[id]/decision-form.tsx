@@ -15,13 +15,13 @@ import {
   SelectValue,
 } from "@shared/ui/components/ui/select";
 import { Textarea } from "@shared/ui/components/ui/textarea";
-import { recordDecision } from "@/server/admin/actions";
+import { ApiError, api } from "@/lib/api";
 
 type Decision = "accepted" | "rejected" | "revision_requested";
 
 /**
- * Recording a decision sends the author an email immediately — there is no
- * separate "notify" step, so the confirmation copy says so plainly.
+ * Recording a decision emails the author immediately — there is no separate
+ * "notify" step, so the button says so.
  */
 export function DecisionForm({ submissionId }: { submissionId: number }) {
   const router = useRouter();
@@ -36,20 +36,21 @@ export function DecisionForm({ submissionId }: { submissionId: number }) {
       onSubmit={async (event) => {
         event.preventDefault();
         setPending(true);
-        const result = await recordDecision({
-          submissionId,
-          decision,
-          note,
-          shareReviewerComments: shareComments,
-        });
-        setPending(false);
-
-        if (!result.ok) {
-          toast.error(result.error);
-          return;
+        try {
+          await api.submissions.recordDecision(submissionId, {
+            decision,
+            note,
+            shareReviewerComments: shareComments,
+          });
+          toast.success("Decision recorded and the author has been emailed.");
+          router.refresh();
+        } catch (cause) {
+          toast.error(
+            cause instanceof ApiError ? cause.message : "Could not save.",
+          );
+        } finally {
+          setPending(false);
         }
-        toast.success("Decision recorded and the author has been emailed.");
-        router.refresh();
       }}
     >
       <div className="space-y-2">

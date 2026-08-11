@@ -5,7 +5,7 @@ import { Download } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@shared/ui/components/ui/button";
-import { getFileDownloadUrl } from "@/server/admin/actions";
+import { ApiError, api } from "@/lib/api";
 
 /**
  * Manuscripts are private in the bucket, so the URL is minted on click and
@@ -27,13 +27,16 @@ export function DownloadButton({
       disabled={pending}
       onClick={async () => {
         setPending(true);
-        const result = await getFileDownloadUrl(fileId);
-        setPending(false);
-        if (!result.ok) {
-          toast.error(result.error);
-          return;
+        try {
+          const { url } = await api.submissions.downloadUrl(fileId);
+          window.open(url, "_blank", "noopener,noreferrer");
+        } catch (cause) {
+          toast.error(
+            cause instanceof ApiError ? cause.message : "Download failed.",
+          );
+        } finally {
+          setPending(false);
         }
-        window.open(result.data.url, "_blank", "noopener,noreferrer");
       }}
     >
       <Download className="mr-2 size-4" />

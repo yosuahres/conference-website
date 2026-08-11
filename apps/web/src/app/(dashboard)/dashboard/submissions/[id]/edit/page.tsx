@@ -1,12 +1,8 @@
 import { notFound, redirect } from "next/navigation";
 
-import { requireUser } from "@/server/auth/session";
-import {
-  getTracks,
-  requireActiveConference,
-} from "@/server/conference/queries";
-import { getSubmissionDetail } from "@/server/submissions/queries";
-import { isEditableByAuthor } from "@/server/submissions/state";
+import { ApiError, api } from "@/lib/api";
+import { forwardedCookies, requireUser } from "@/lib/server-api";
+import { isEditableByAuthor } from "@/lib/submission-status";
 import { SubmissionForm } from "../../submission-form";
 
 export const metadata = { title: "Edit submission" };
@@ -16,18 +12,22 @@ interface PageProps {
 }
 
 export default async function EditSubmissionPage({ params }: PageProps) {
-  const user = await requireUser();
-  const conference = await requireActiveConference();
-
+  await requireUser();
   const { id } = await params;
-  const detail = await getSubmissionDetail(Number(id), user.id);
+
+  const detail = await api.submissions
+    .get(Number(id), await forwardedCookies())
+    .catch((cause) => {
+      if (cause instanceof ApiError && cause.status === 404) return null;
+      throw cause;
+    });
   if (!detail) notFound();
 
   if (!isEditableByAuthor(detail.submission.status)) {
     redirect(`/dashboard/submissions/${id}`);
   }
 
-  const tracks = await getTracks(conference.id);
+  const tracks = await api.conference.tracks();
 
   return (
     <div className="space-y-6">

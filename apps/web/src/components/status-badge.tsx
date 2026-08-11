@@ -1,6 +1,11 @@
+import type { RegistrationStatus, SubmissionStatus } from "@shared/types";
 import { cn } from "@shared/ui/lib/utils";
-import type { SubmissionStatus } from "@/server/db/schema";
-import { STATUS_LABELS, STATUS_STYLES } from "@/server/submissions/state";
+import {
+  REGISTRATION_LABELS,
+  REGISTRATION_STYLES,
+  STATUS_LABELS,
+  STATUS_STYLES,
+} from "@/lib/submission-status";
 
 export function SubmissionStatusBadge({
   status,
@@ -22,26 +27,11 @@ export function SubmissionStatusBadge({
   );
 }
 
-const REGISTRATION_LABELS = {
-  pending_payment: "Awaiting payment",
-  paid: "Paid",
-  cancelled: "Cancelled",
-  refunded: "Refunded",
-} as const;
-
-const REGISTRATION_STYLES = {
-  pending_payment:
-    "bg-amber-100 text-amber-900 dark:bg-amber-950 dark:text-amber-200",
-  paid: "bg-emerald-100 text-emerald-900 dark:bg-emerald-950 dark:text-emerald-200",
-  cancelled: "bg-muted text-muted-foreground",
-  refunded: "bg-blue-100 text-blue-900 dark:bg-blue-950 dark:text-blue-200",
-} as const;
-
 export function RegistrationStatusBadge({
   status,
   className,
 }: {
-  status: keyof typeof REGISTRATION_LABELS;
+  status: RegistrationStatus;
   className?: string;
 }) {
   return (

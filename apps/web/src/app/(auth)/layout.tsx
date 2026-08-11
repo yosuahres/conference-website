@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-import { getActiveConference } from "@/server/conference/queries";
+import { getActiveConference } from "@/lib/server-api";
 
 export default async function AuthLayout({
   children,

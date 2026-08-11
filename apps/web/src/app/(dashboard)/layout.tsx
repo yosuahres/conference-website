@@ -1,8 +1,7 @@
 import Link from "next/link";
 import { FileText, LayoutDashboard, Receipt, UserCog } from "lucide-react";
 
-import { requireUser } from "@/server/auth/session";
-import { getActiveConference } from "@/server/conference/queries";
+import { getActiveConference, requireUser } from "@/lib/server-api";
 import { SignOutButton } from "@/components/sign-out-button";
 
 const NAV = [

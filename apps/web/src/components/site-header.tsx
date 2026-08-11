@@ -1,8 +1,8 @@
 import Link from "next/link";
 
 import { Button } from "@shared/ui/components/ui/button";
-import { getCurrentUser } from "@/server/auth/session";
-import { getActiveConference, getNavPages } from "@/server/conference/queries";
+import { api } from "@/lib/api";
+import { getActiveConference, getCurrentUser } from "@/lib/server-api";
 import { MobileNav } from "./mobile-nav";
 
 const STATIC_LINKS = [
@@ -16,7 +16,7 @@ export async function SiteHeader() {
   const conference = await getActiveConference();
   const [user, cmsPages] = await Promise.all([
     getCurrentUser(),
-    conference ? getNavPages(conference.id) : Promise.resolve([]),
+    conference ? api.conference.nav() : Promise.resolve([]),
   ]);
 
   const links = [

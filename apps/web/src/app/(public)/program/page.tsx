@@ -1,23 +1,24 @@
 import { notFound } from "next/navigation";
 
 import { formatDate } from "@/lib/format";
-import { getActiveConference, getSchedule } from "@/server/conference/queries";
+import { api } from "@/lib/api";
+import { getActiveConference } from "@/lib/server-api";
 
 export const metadata = { title: "Programme" };
 
-function timeOf(value: Date, timezone: string) {
+function timeOf(value: string, timezone: string) {
   return new Intl.DateTimeFormat("en-GB", {
     hour: "2-digit",
     minute: "2-digit",
     timeZone: timezone,
-  }).format(value);
+  }).format(new Date(value));
 }
 
 export default async function ProgramPage() {
   const conference = await getActiveConference();
   if (!conference) notFound();
 
-  const days = await getSchedule(conference.id);
+  const days = await api.conference.schedule();
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-16">

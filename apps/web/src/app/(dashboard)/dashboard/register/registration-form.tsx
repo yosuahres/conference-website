@@ -17,24 +17,15 @@ import {
   SelectValue,
 } from "@shared/ui/components/ui/select";
 import { Textarea } from "@shared/ui/components/ui/textarea";
-import { formatIdr } from "@/lib/format";
+import type { RegistrationTier } from "@shared/types";
 import {
   registrationSchema,
   type RegistrationInput,
 } from "@/lib/validation/registration";
-import { createRegistration } from "@/server/registrations/actions";
-
-interface Tier {
-  id: number;
-  name: string;
-  category: string;
-  mode: "onsite" | "online";
-  price: number;
-  description: string | null;
-}
+import { ApiError, api } from "@/lib/api";
 
 interface RegistrationFormProps {
-  tiers: Tier[];
+  tiers: RegistrationTier[];
   acceptedPapers: { id: number; reference: string; title: string }[];
   defaultTierId?: number;
   user: {
@@ -78,27 +69,25 @@ export function RegistrationForm({
     PRESENTER_CATEGORIES.includes(selectedTier.category);
 
   async function onSubmit(values: RegistrationInput) {
-    const result = await createRegistration({
-      ...values,
-      // Only presenters carry a paper; sending one otherwise is noise.
-      submissionId: needsPaper ? values.submissionId : null,
-    });
+    try {
+      const handoff = await api.registrations.create({
+        ...values,
+        // Only presenters carry a paper; sending one otherwise is noise.
+        submissionId: needsPaper ? values.submissionId : null,
+      });
 
-    if (!result.ok) {
-      toast.error(result.error);
-      for (const [field, messages] of Object.entries(
-        result.fieldErrors ?? {},
-      )) {
+      setRedirecting(true);
+      // Hand off to Midtrans' hosted payment page.
+      window.location.href = handoff.redirectUrl;
+    } catch (cause) {
+      if (!(cause instanceof ApiError)) throw cause;
+      toast.error(cause.message);
+      for (const [field, messages] of Object.entries(cause.fieldErrors ?? {})) {
         form.setError(field as keyof RegistrationInput, {
           message: messages[0],
         });
       }
-      return;
     }
-
-    setRedirecting(true);
-    // Hand off to Midtrans' hosted payment page.
-    window.location.href = result.data.redirectUrl;
   }
 
   return (
@@ -118,7 +107,7 @@ export function RegistrationForm({
             <SelectContent>
               {tiers.map((tier) => (
                 <SelectItem key={tier.id} value={String(tier.id)}>
-                  {tier.name} — {formatIdr(tier.price)}
+                  {tier.name} — {tier.priceFormatted}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -229,9 +218,7 @@ export function RegistrationForm({
         <div className="flex items-center justify-between rounded-lg border bg-muted/40 p-6">
           <div>
             <p className="text-sm text-muted-foreground">Total due</p>
-            <p className="text-2xl font-bold">
-              {formatIdr(selectedTier.price)}
-            </p>
+            <p className="text-2xl font-bold">{selectedTier.priceFormatted}</p>
           </div>
           <Button
             type="submit"

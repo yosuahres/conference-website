@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 
-import { getActiveConference, getSpeakers } from "@/server/conference/queries";
+import { api } from "@/lib/api";
+import { getActiveConference } from "@/lib/server-api";
 
 export const metadata = { title: "Speakers" };
 
@@ -8,7 +9,7 @@ export default async function SpeakersPage() {
   const conference = await getActiveConference();
   if (!conference) notFound();
 
-  const speakers = await getSpeakers(conference.id);
+  const speakers = await api.conference.speakers();
   const keynotes = speakers.filter((speaker) => speaker.isKeynote);
   const invited = speakers.filter((speaker) => !speaker.isKeynote);
 

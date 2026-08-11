@@ -14,7 +14,7 @@ import {
 } from "@shared/ui/components/ui/card";
 import { Input } from "@shared/ui/components/ui/input";
 import { Label } from "@shared/ui/components/ui/label";
-import { authClient } from "@/lib/auth-client";
+import { ApiError, api } from "@/lib/api";
 
 type Mode = "sign-in" | "sign-up";
 
@@ -35,23 +35,26 @@ export function SignInForm() {
     setPending(true);
     try {
       if (mode === "sign-up") {
-        const { error } = await authClient.signUp.email({
+        await api.auth.register({
           email,
           password,
           name: String(form.get("name")),
+          affiliation: String(form.get("affiliation") || "") || undefined,
         });
-        if (error) throw new Error(error.message);
-        toast.success("Check your inbox to confirm your email address.");
-        setMode("sign-in");
-        return;
+        toast.success(
+          "Account created. Check your inbox to confirm your email.",
+        );
+      } else {
+        await api.auth.login({ email, password });
       }
 
-      const { error } = await authClient.signIn.email({ email, password });
-      if (error) throw new Error(error.message);
+      // Registration signs you in too, so both paths land on the dashboard.
       router.push(next);
       router.refresh();
     } catch (cause) {
-      toast.error(cause instanceof Error ? cause.message : "Sign-in failed.");
+      toast.error(
+        cause instanceof ApiError ? cause.message : "Something went wrong.",
+      );
     } finally {
       setPending(false);
     }
@@ -72,10 +75,20 @@ export function SignInForm() {
       <CardContent>
         <form onSubmit={onSubmit} className="space-y-4">
           {mode === "sign-up" ? (
-            <div className="space-y-2">
-              <Label htmlFor="name">Full name</Label>
-              <Input id="name" name="name" required autoComplete="name" />
-            </div>
+            <>
+              <div className="space-y-2">
+                <Label htmlFor="name">Full name</Label>
+                <Input id="name" name="name" required autoComplete="name" />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="affiliation">Affiliation (optional)</Label>
+                <Input
+                  id="affiliation"
+                  name="affiliation"
+                  autoComplete="organization"
+                />
+              </div>
+            </>
           ) : null}
 
           <div className="space-y-2">
@@ -116,6 +129,15 @@ export function SignInForm() {
                 : "Create account"}
           </Button>
         </form>
+
+        <div className="mt-4 text-center">
+          <a
+            href="/forgot-password"
+            className="text-xs text-muted-foreground underline underline-offset-4"
+          >
+            Forgot your password?
+          </a>
+        </div>
 
         <p className="mt-6 text-center text-sm text-muted-foreground">
           {mode === "sign-in" ? "No account yet?" : "Already registered?"}{" "}

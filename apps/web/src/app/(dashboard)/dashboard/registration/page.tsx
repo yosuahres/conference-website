@@ -1,14 +1,14 @@
 import { redirect } from "next/navigation";
 
-import { requireUser } from "@/server/auth/session";
-import { requireActiveConference } from "@/server/conference/queries";
-import { getMyRegistrations } from "@/server/registrations/queries";
+import { api } from "@/lib/api";
+import { forwardedCookies, requireUser } from "@/lib/server-api";
 
 /** There is at most one live registration, so this is just a redirector. */
 export default async function RegistrationIndexPage() {
-  const user = await requireUser();
-  const conference = await requireActiveConference();
-  const registrations = await getMyRegistrations(user.id, conference.id);
+  await requireUser();
+  const registrations = await api.registrations.listMine(
+    await forwardedCookies(),
+  );
 
   const latest = registrations[0];
   redirect(

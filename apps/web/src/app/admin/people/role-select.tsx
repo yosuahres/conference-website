@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
 
+import type { UserRole } from "@shared/types";
 import {
   Select,
   SelectContent,
@@ -11,15 +12,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@shared/ui/components/ui/select";
-import { setUserRole } from "@/server/admin/actions";
-import type { UserRole } from "@/server/db/schema";
+import { ApiError, api } from "@/lib/api";
 
 export function RoleSelect({
   userId,
   role,
   disabled,
 }: {
-  userId: string;
+  userId: number;
   role: UserRole;
   disabled?: boolean;
 }) {
@@ -32,14 +32,17 @@ export function RoleSelect({
       disabled={disabled || pending}
       onValueChange={async (value) => {
         setPending(true);
-        const result = await setUserRole(userId, value as UserRole);
-        setPending(false);
-        if (!result.ok) {
-          toast.error(result.error);
-          return;
+        try {
+          await api.users.setRole(userId, value);
+          toast.success("Role updated.");
+          router.refresh();
+        } catch (cause) {
+          toast.error(
+            cause instanceof ApiError ? cause.message : "Update failed.",
+          );
+        } finally {
+          setPending(false);
         }
-        toast.success("Role updated.");
-        router.refresh();
       }}
     >
       <SelectTrigger className="w-36">

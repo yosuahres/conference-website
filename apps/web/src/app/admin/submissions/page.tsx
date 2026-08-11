@@ -1,11 +1,15 @@
 import Link from "next/link";
 
+import type { SubmissionStatus } from "@shared/types";
 import { SubmissionStatusBadge } from "@/components/status-badge";
 import { formatDate } from "@/lib/format";
-import { requireActiveConference } from "@/server/conference/queries";
-import type { SubmissionStatus } from "@/server/db/schema";
-import { listSubmissions } from "@/server/submissions/queries";
-import { STATUS_LABELS } from "@/server/submissions/state";
+import { api } from "@/lib/api";
+import {
+  forwardedCookies,
+  getActiveConference,
+  requireRole,
+} from "@/lib/server-api";
+import { STATUS_LABELS } from "@/lib/submission-status";
 
 export const metadata = { title: "Submissions" };
 
@@ -16,15 +20,19 @@ interface PageProps {
 export default async function AdminSubmissionsPage({
   searchParams,
 }: PageProps) {
-  const conference = await requireActiveConference();
+  await requireRole("admin", "reviewer");
+  const conference = await getActiveConference();
   const { status } = await searchParams;
 
   const filter =
     status && status in STATUS_LABELS
-      ? ([status] as SubmissionStatus[])
+      ? (status as SubmissionStatus)
       : undefined;
 
-  const submissions = await listSubmissions(conference.id, filter);
+  const submissions = await api.submissions.listAll(
+    filter,
+    await forwardedCookies(),
+  );
 
   return (
     <div className="space-y-6">
@@ -79,14 +87,14 @@ export default async function AdminSubmissionsPage({
                     </Link>
                   </td>
                   <td className="whitespace-nowrap p-3 text-muted-foreground">
-                    {submitter.name}
+                    {submitter?.name ?? "—"}
                   </td>
                   <td className="whitespace-nowrap p-3 text-muted-foreground">
                     {track?.name ?? "—"}
                   </td>
                   <td className="whitespace-nowrap p-3 text-muted-foreground">
                     {submission.submittedAt
-                      ? formatDate(submission.submittedAt, conference.timezone)
+                      ? formatDate(submission.submittedAt, conference?.timezone)
                       : "—"}
                   </td>
                   <td className="p-3">

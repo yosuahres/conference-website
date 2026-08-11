@@ -1,7 +1,7 @@
 import Link from "next/link";
 
 import { formatDateRange } from "@/lib/format";
-import { getActiveConference } from "@/server/conference/queries";
+import { getActiveConference } from "@/lib/server-api";
 
 export async function SiteFooter() {
   const conference = await getActiveConference();

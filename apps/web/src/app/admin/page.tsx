@@ -1,23 +1,33 @@
 import Link from "next/link";
 
 import { formatIdr } from "@/lib/format";
-import { requireActiveConference } from "@/server/conference/queries";
+import { api } from "@/lib/api";
 import {
-  getRegistrationStats,
-  listRegistrations,
-} from "@/server/registrations/queries";
-import { listSubmissions } from "@/server/submissions/queries";
-import { STATUS_LABELS } from "@/server/submissions/state";
+  forwardedCookies,
+  getActiveConference,
+  requireRole,
+} from "@/lib/server-api";
+import { STATUS_LABELS } from "@/lib/submission-status";
 
 export const metadata = { title: "Admin" };
 
 export default async function AdminOverviewPage() {
-  const conference = await requireActiveConference();
+  await requireRole("admin");
+  const conference = await getActiveConference();
+  const cookieHeader = await forwardedCookies();
 
-  const [submissions, registrationStats, registrations] = await Promise.all([
-    listSubmissions(conference.id),
-    getRegistrationStats(conference.id),
-    listRegistrations(conference.id),
+  if (!conference) {
+    return (
+      <p className="text-sm text-muted-foreground">
+        No active conference is configured yet.
+      </p>
+    );
+  }
+
+  const [submissions, stats, registrations] = await Promise.all([
+    api.submissions.listAll(undefined, cookieHeader),
+    api.registrations.stats(cookieHeader),
+    api.registrations.listAll(cookieHeader),
   ]);
 
   const byStatus = submissions.reduce<Record<string, number>>((acc, row) => {
@@ -48,12 +58,12 @@ export default async function AdminOverviewPage() {
     },
     {
       label: "Paid registrations",
-      value: registrationStats.paid,
+      value: stats.paid,
       href: "/admin/registrations",
     },
     {
       label: "Awaiting payment",
-      value: registrationStats.pending,
+      value: stats.pending,
       href: "/admin/registrations",
     },
   ];
@@ -102,15 +112,17 @@ export default async function AdminOverviewPage() {
             Confirmed payments only.
           </p>
           <dl className="mt-6 space-y-2 text-sm">
-            {[
-              ["Paid", registrationStats.paid],
-              ["Awaiting payment", registrationStats.pending],
-              ["Cancelled", registrationStats.cancelled],
-              ["Refunded", registrationStats.refunded],
-            ].map(([label, value]) => (
-              <div key={String(label)} className="flex justify-between">
-                <dt className="text-muted-foreground">{label as string}</dt>
-                <dd className="font-medium tabular-nums">{value as number}</dd>
+            {(
+              [
+                ["Paid", stats.paid],
+                ["Awaiting payment", stats.pending],
+                ["Cancelled", stats.cancelled],
+                ["Refunded", stats.refunded],
+              ] as const
+            ).map(([label, value]) => (
+              <div key={label} className="flex justify-between">
+                <dt className="text-muted-foreground">{label}</dt>
+                <dd className="font-medium tabular-nums">{value}</dd>
               </div>
             ))}
           </dl>

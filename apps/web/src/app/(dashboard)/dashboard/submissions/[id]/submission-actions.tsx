@@ -16,10 +16,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@shared/ui/components/ui/alert-dialog";
-import {
-  submitForReview,
-  withdrawSubmission,
-} from "@/server/submissions/actions";
+import { ApiError, api } from "@/lib/api";
 
 interface SubmissionActionsProps {
   submissionId: number;
@@ -37,15 +34,19 @@ export function SubmissionActions({
   const router = useRouter();
   const [pending, setPending] = useState(false);
 
-  async function run(fn: () => Promise<{ ok: boolean; error?: string }>) {
+  async function run(action: () => Promise<unknown>, success: string) {
     setPending(true);
-    const result = await fn();
-    setPending(false);
-    if (!result.ok) {
-      toast.error(result.error ?? "Something went wrong.");
-      return;
+    try {
+      await action();
+      toast.success(success);
+      router.refresh();
+    } catch (cause) {
+      toast.error(
+        cause instanceof ApiError ? cause.message : "Something went wrong.",
+      );
+    } finally {
+      setPending(false);
     }
-    router.refresh();
   }
 
   return (
@@ -69,12 +70,10 @@ export function SubmissionActions({
               <AlertDialogCancel>Cancel</AlertDialogCancel>
               <AlertDialogAction
                 onClick={() =>
-                  run(async () => {
-                    const result = await submitForReview(submissionId);
-                    if (result.ok)
-                      toast.success("Submitted. Check your email.");
-                    return result;
-                  })
+                  run(
+                    () => api.submissions.submit(submissionId),
+                    "Submitted. Check your email.",
+                  )
                 }
               >
                 Submit
@@ -109,11 +108,10 @@ export function SubmissionActions({
               <AlertDialogCancel>Keep it</AlertDialogCancel>
               <AlertDialogAction
                 onClick={() =>
-                  run(async () => {
-                    const result = await withdrawSubmission(submissionId);
-                    if (result.ok) toast.success("Submission withdrawn.");
-                    return result;
-                  })
+                  run(
+                    () => api.submissions.withdraw(submissionId),
+                    "Submission withdrawn.",
+                  )
                 }
               >
                 Withdraw

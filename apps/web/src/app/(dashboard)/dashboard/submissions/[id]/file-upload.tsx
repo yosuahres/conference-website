@@ -5,26 +5,21 @@ import { useRef, useState } from "react";
 import { Upload } from "lucide-react";
 import { toast } from "sonner";
 
+import type { SubmissionFileKind } from "@shared/types";
 import { Button } from "@shared/ui/components/ui/button";
-import { confirmUpload, requestUploadUrl } from "@/server/submissions/actions";
-
-type FileKind =
-  | "manuscript"
-  | "camera_ready"
-  | "supplementary"
-  | "copyright_form";
+import { ApiError, api } from "@/lib/api";
 
 interface FileUploadProps {
   submissionId: number;
-  kind: FileKind;
+  kind: SubmissionFileKind;
   label: string;
   accept?: string;
 }
 
 /**
- * Two-step upload: ask the server for a presigned PUT, send the bytes straight
- * to the bucket, then tell the server it landed. The file never passes through
- * a serverless function.
+ * Three steps: ask the API for a presigned PUT, send the bytes straight to the
+ * bucket, then tell the API it landed. The file never passes through either
+ * Next.js or Nest.
  */
 export function FileUpload({
   submissionId,
@@ -39,47 +34,34 @@ export function FileUpload({
   async function handleFile(file: File) {
     setProgress(0);
 
-    const prepared = await requestUploadUrl({
-      submissionId,
-      kind,
-      fileName: file.name,
-      contentType: file.type,
-      sizeBytes: file.size,
-    });
-
-    if (!prepared.ok) {
-      setProgress(null);
-      toast.error(prepared.error);
-      return;
-    }
-
     try {
-      await putWithProgress(prepared.data.uploadUrl, file, setProgress);
-    } catch {
+      const ticket = await api.submissions.requestUpload(submissionId, {
+        kind,
+        fileName: file.name,
+        contentType: file.type,
+        sizeBytes: file.size,
+      });
+
+      await putWithProgress(ticket.uploadUrl, file, setProgress);
+
+      await api.submissions.confirmUpload(submissionId, {
+        kind,
+        storageKey: ticket.storageKey,
+        fileName: file.name,
+        contentType: file.type,
+        sizeBytes: file.size,
+        version: ticket.version,
+      });
+
+      toast.success(`${label} uploaded.`);
+      router.refresh();
+    } catch (cause) {
+      toast.error(
+        cause instanceof ApiError ? cause.message : "Upload failed. Try again.",
+      );
+    } finally {
       setProgress(null);
-      toast.error("Upload failed. Please try again.");
-      return;
     }
-
-    const confirmed = await confirmUpload({
-      submissionId,
-      kind,
-      storageKey: prepared.data.storageKey,
-      fileName: file.name,
-      contentType: file.type,
-      sizeBytes: file.size,
-      version: prepared.data.version,
-    });
-
-    setProgress(null);
-
-    if (!confirmed.ok) {
-      toast.error(confirmed.error);
-      return;
-    }
-
-    toast.success(`${label} uploaded.`);
-    router.refresh();
   }
 
   return (

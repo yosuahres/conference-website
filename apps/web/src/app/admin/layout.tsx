@@ -2,8 +2,7 @@ import Link from "next/link";
 import { FileText, Home, LayoutDashboard, Receipt, Users } from "lucide-react";
 
 import { SignOutButton } from "@/components/sign-out-button";
-import { requireRole } from "@/server/auth/session";
-import { getActiveConference } from "@/server/conference/queries";
+import { getActiveConference, requireRole } from "@/lib/server-api";
 
 const NAV = [
   { href: "/admin", label: "Overview", icon: LayoutDashboard },

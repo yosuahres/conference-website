@@ -1,16 +1,17 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import type { SubmissionFile } from "@shared/types";
 import { Button } from "@shared/ui/components/ui/button";
 import { SubmissionStatusBadge } from "@/components/status-badge";
 import { formatBytes, formatDate, formatDateTime } from "@/lib/format";
-import { requireUser } from "@/server/auth/session";
-import { requireActiveConference } from "@/server/conference/queries";
+import { ApiError, api } from "@/lib/api";
 import {
-  getSubmissionDetail,
-  pickLatestFiles,
-} from "@/server/submissions/queries";
-import { isEditableByAuthor } from "@/server/submissions/state";
+  forwardedCookies,
+  getActiveConference,
+  requireUser,
+} from "@/lib/server-api";
+import { isEditableByAuthor } from "@/lib/submission-status";
 import { FileUpload } from "./file-upload";
 import { SubmissionActions } from "./submission-actions";
 
@@ -18,16 +19,31 @@ interface PageProps {
   params: Promise<{ id: string }>;
 }
 
-export default async function SubmissionDetailPage({ params }: PageProps) {
-  const user = await requireUser();
-  const conference = await requireActiveConference();
+/** Latest version of each kind; earlier ones stay in the API's response. */
+function pickLatest(files: SubmissionFile[]) {
+  const latest = new Map<string, SubmissionFile>();
+  for (const file of files) {
+    const current = latest.get(file.kind);
+    if (!current || file.version > current.version) latest.set(file.kind, file);
+  }
+  return latest;
+}
 
+export default async function SubmissionDetailPage({ params }: PageProps) {
+  await requireUser();
+  const conference = await getActiveConference();
   const { id } = await params;
-  const detail = await getSubmissionDetail(Number(id), user.id);
-  if (!detail) notFound();
+
+  const detail = await api.submissions
+    .get(Number(id), await forwardedCookies())
+    .catch((cause) => {
+      if (cause instanceof ApiError && cause.status === 404) return null;
+      throw cause;
+    });
+  if (!detail || !conference) notFound();
 
   const { submission, track, authors, files, reviews } = detail;
-  const latest = pickLatestFiles(files);
+  const latest = pickLatest(files);
   const editable = isEditableByAuthor(submission.status);
   const accepted =
     submission.status === "accepted" ||
@@ -35,7 +51,7 @@ export default async function SubmissionDetailPage({ params }: PageProps) {
 
   // Reviewer comments are shown only after a decision is on record.
   const visibleReviews = submission.decidedAt
-    ? reviews.filter(({ review }) => review.commentsToAuthor)
+    ? reviews.filter((review) => review.commentsToAuthor)
     : [];
 
   return (
@@ -155,26 +171,16 @@ export default async function SubmissionDetailPage({ params }: PageProps) {
           </p>
         ) : (
           <ul className="mt-4 divide-y">
-            {[...latest.values()].map((file) => {
-              const full = files.find((candidate) => candidate.id === file.id)!;
-              return (
-                <li
-                  key={full.id}
-                  className="flex items-center justify-between gap-4 py-3"
-                >
-                  <div className="min-w-0">
-                    <p className="truncate text-sm font-medium">
-                      {full.fileName}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {full.kind.replace("_", " ")} · v{full.version} ·{" "}
-                      {formatBytes(full.sizeBytes)} ·{" "}
-                      {formatDateTime(full.uploadedAt, conference.timezone)}
-                    </p>
-                  </div>
-                </li>
-              );
-            })}
+            {[...latest.values()].map((file) => (
+              <li key={file.id} className="py-3">
+                <p className="truncate text-sm font-medium">{file.fileName}</p>
+                <p className="text-xs text-muted-foreground">
+                  {file.kind.replace("_", " ")} · v{file.version} ·{" "}
+                  {formatBytes(file.sizeBytes)} ·{" "}
+                  {formatDateTime(file.uploadedAt, conference.timezone)}
+                </p>
+              </li>
+            ))}
           </ul>
         )}
       </section>
@@ -183,7 +189,7 @@ export default async function SubmissionDetailPage({ params }: PageProps) {
         <section className="rounded-lg border bg-card p-6">
           <h2 className="text-base font-semibold">Reviewer comments</h2>
           <ol className="mt-4 space-y-4">
-            {visibleReviews.map(({ review }, index) => (
+            {visibleReviews.map((review, index) => (
               <li key={review.id} className="rounded-md border p-4">
                 <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
                   Reviewer {index + 1}

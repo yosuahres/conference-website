@@ -2,9 +2,12 @@ import { notFound } from "next/navigation";
 
 import { SubmissionStatusBadge } from "@/components/status-badge";
 import { formatBytes, formatDateTime } from "@/lib/format";
-import { requireRole } from "@/server/auth/session";
-import { requireActiveConference } from "@/server/conference/queries";
-import { getSubmissionDetail } from "@/server/submissions/queries";
+import { ApiError, api } from "@/lib/api";
+import {
+  forwardedCookies,
+  getActiveConference,
+  requireRole,
+} from "@/lib/server-api";
 import { DecisionForm } from "./decision-form";
 import { DownloadButton } from "./download-button";
 
@@ -14,11 +17,16 @@ interface PageProps {
 
 export default async function AdminSubmissionPage({ params }: PageProps) {
   const user = await requireRole("admin", "reviewer");
-  const conference = await requireActiveConference();
-
+  const conference = await getActiveConference();
   const { id } = await params;
-  const detail = await getSubmissionDetail(Number(id));
-  if (!detail) notFound();
+
+  const detail = await api.submissions
+    .get(Number(id), await forwardedCookies())
+    .catch((cause) => {
+      if (cause instanceof ApiError && cause.status === 404) return null;
+      throw cause;
+    });
+  if (!detail || !conference) notFound();
 
   const { submission, track, submitter, authors, files, reviews } = detail;
   const isAdmin = user.role === "admin";
@@ -113,10 +121,10 @@ export default async function AdminSubmissionPage({ params }: PageProps) {
           </p>
         ) : (
           <ul className="mt-4 space-y-4">
-            {reviews.map(({ review, reviewer }) => (
+            {reviews.map((review) => (
               <li key={review.id} className="rounded-md border p-4">
                 <div className="flex flex-wrap items-center justify-between gap-2">
-                  <p className="text-sm font-medium">{reviewer.name}</p>
+                  <p className="text-sm font-medium">{review.reviewer.name}</p>
                   <p className="text-xs text-muted-foreground">
                     {review.submittedAt
                       ? `${review.recommendation?.replace("_", " ")} · ${review.score}/5`

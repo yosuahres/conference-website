@@ -2,9 +2,12 @@ import { notFound } from "next/navigation";
 
 import { RegistrationStatusBadge } from "@/components/status-badge";
 import { formatDateTime, formatIdr } from "@/lib/format";
-import { requireUser } from "@/server/auth/session";
-import { requireActiveConference } from "@/server/conference/queries";
-import { getRegistrationDetail } from "@/server/registrations/queries";
+import { ApiError, api } from "@/lib/api";
+import {
+  forwardedCookies,
+  getActiveConference,
+  requireUser,
+} from "@/lib/server-api";
 import { PaymentActions } from "./payment-actions";
 
 interface PageProps {
@@ -15,11 +18,16 @@ export const metadata = { title: "Registration" };
 
 export default async function RegistrationDetailPage({ params }: PageProps) {
   const user = await requireUser();
-  const conference = await requireActiveConference();
-
+  const conference = await getActiveConference();
   const { id } = await params;
-  const detail = await getRegistrationDetail(Number(id), user.id);
-  if (!detail) notFound();
+
+  const detail = await api.registrations
+    .get(Number(id), await forwardedCookies())
+    .catch((cause) => {
+      if (cause instanceof ApiError && cause.status === 404) return null;
+      throw cause;
+    });
+  if (!detail || !conference) notFound();
 
   const { registration, tier, submission, payments } = detail;
 
@@ -66,32 +74,37 @@ export default async function RegistrationDetailPage({ params }: PageProps) {
       <section className="rounded-lg border bg-card p-6">
         <h2 className="text-base font-semibold">Details</h2>
         <dl className="mt-4 grid gap-4 text-sm sm:grid-cols-2">
-          {[
-            ["Attendee", registration.fullName],
-            ["Affiliation", registration.affiliation],
-            ["Country", registration.country],
-            ["Phone", registration.phone],
+          {(
             [
-              "Attendance",
-              registration.mode === "online" ? "Online" : "On-site",
-            ],
-            ["Amount", formatIdr(registration.amount)],
-            [
-              "Paper",
-              submission
-                ? `${submission.reference} — ${submission.title}`
-                : null,
-            ],
-            ["Dietary notes", registration.dietaryNotes],
-            ["Visa letter", registration.needsVisaLetter ? "Requested" : null],
-          ]
+              ["Attendee", registration.fullName],
+              ["Affiliation", registration.affiliation],
+              ["Country", registration.country],
+              ["Phone", registration.phone],
+              [
+                "Attendance",
+                registration.mode === "online" ? "Online" : "On-site",
+              ],
+              ["Amount", formatIdr(registration.amount)],
+              [
+                "Paper",
+                submission
+                  ? `${submission.reference} — ${submission.title}`
+                  : null,
+              ],
+              ["Dietary notes", registration.dietaryNotes],
+              [
+                "Visa letter",
+                registration.needsVisaLetter ? "Requested" : null,
+              ],
+            ] as const
+          )
             .filter(([, value]) => value)
             .map(([label, value]) => (
-              <div key={String(label)}>
+              <div key={label}>
                 <dt className="text-xs uppercase tracking-wide text-muted-foreground">
-                  {label as string}
+                  {label}
                 </dt>
-                <dd className="mt-0.5">{value as string}</dd>
+                <dd className="mt-0.5">{value}</dd>
               </div>
             ))}
         </dl>

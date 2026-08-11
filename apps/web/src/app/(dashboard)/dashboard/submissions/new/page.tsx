@@ -1,22 +1,18 @@
 import { redirect } from "next/navigation";
 
-import { requireUser } from "@/server/auth/session";
-import {
-  getTracks,
-  isSubmissionOpen,
-  requireActiveConference,
-} from "@/server/conference/queries";
+import { api } from "@/lib/api";
+import { getActiveConference, requireUser } from "@/lib/server-api";
 import { SubmissionForm } from "../submission-form";
 
 export const metadata = { title: "New submission" };
 
 export default async function NewSubmissionPage() {
   const user = await requireUser("/dashboard/submissions/new");
-  const conference = await requireActiveConference();
+  const conference = await getActiveConference();
 
-  if (!isSubmissionOpen(conference)) redirect("/dashboard/submissions");
+  if (!conference?.submissionOpen) redirect("/dashboard/submissions");
 
-  const tracks = await getTracks(conference.id);
+  const tracks = await api.conference.tracks();
 
   return (
     <div className="space-y-6">

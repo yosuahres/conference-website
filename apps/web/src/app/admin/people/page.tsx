@@ -1,35 +1,21 @@
-import { asc } from "drizzle-orm";
-
 import { formatDate } from "@/lib/format";
-import { requireAdmin } from "@/server/auth/session";
-import { db } from "@/server/db";
-import { users } from "@/server/db/schema";
+import { api } from "@/lib/api";
+import { forwardedCookies, requireRole } from "@/lib/server-api";
 import { RoleSelect } from "./role-select";
 
 export const metadata = { title: "People" };
 
 export default async function AdminPeoplePage() {
-  const admin = await requireAdmin();
-
-  const people = await db
-    .select({
-      id: users.id,
-      name: users.name,
-      email: users.email,
-      role: users.role,
-      affiliation: users.affiliation,
-      createdAt: users.createdAt,
-    })
-    .from(users)
-    .orderBy(asc(users.name));
+  const admin = await requireRole("admin");
+  const people = await api.users.list(await forwardedCookies());
 
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">People</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Grant the reviewer role to committee members so they can open assigned
-          manuscripts.
+          Grant the reviewer role to committee members so they can open the
+          manuscripts assigned to them.
         </p>
       </div>
 

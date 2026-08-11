@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import { Button } from "@shared/ui/components/ui/button";
-import { authClient } from "@/lib/auth-client";
+import { api } from "@/lib/api";
 
 export function SignOutButton() {
   const router = useRouter();
@@ -17,7 +17,9 @@ export function SignOutButton() {
       disabled={pending}
       onClick={async () => {
         setPending(true);
-        await authClient.signOut();
+        // The API clears the cookies; ignore failures so a stale session can
+        // still be walked away from.
+        await api.auth.logout().catch(() => undefined);
         router.push("/");
         router.refresh();
       }}

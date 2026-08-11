@@ -2,28 +2,19 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { Button } from "@shared/ui/components/ui/button";
-import { formatDate, formatIdr } from "@/lib/format";
-import {
-  getActiveConference,
-  isRegistrationOpen,
-} from "@/server/conference/queries";
-import { getAvailableTiers } from "@/server/registrations/queries";
+import { formatDate } from "@/lib/format";
+import { api } from "@/lib/api";
+import { CATEGORY_LABELS } from "@/lib/submission-status";
+import { getActiveConference } from "@/lib/server-api";
 
 export const metadata = { title: "Registration" };
-
-const CATEGORY_LABELS: Record<string, string> = {
-  presenter: "Presenter",
-  participant: "Participant",
-  student_presenter: "Student presenter",
-  student_participant: "Student participant",
-};
 
 export default async function RegisterPage() {
   const conference = await getActiveConference();
   if (!conference) notFound();
 
-  const tiers = await getAvailableTiers(conference.id);
-  const open = isRegistrationOpen(conference);
+  const tiers = await api.registrations.tiers();
+  const open = conference.registrationOpen;
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-16">
@@ -58,7 +49,7 @@ export default async function RegisterPage() {
               </p>
               <p className="mt-2 text-base font-semibold">{tier.name}</p>
               <p className="mt-4 text-3xl font-bold tracking-tight">
-                {formatIdr(tier.price)}
+                {tier.priceFormatted}
               </p>
 
               {tier.description ? (

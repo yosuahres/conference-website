@@ -2,16 +2,12 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { Button } from "@shared/ui/components/ui/button";
-import { requireUser } from "@/server/auth/session";
+import { api } from "@/lib/api";
 import {
-  isRegistrationOpen,
-  requireActiveConference,
-} from "@/server/conference/queries";
-import {
-  getAvailableTiers,
-  getMyRegistrations,
-} from "@/server/registrations/queries";
-import { getRegisterableSubmissions } from "@/server/submissions/queries";
+  forwardedCookies,
+  getActiveConference,
+  requireUser,
+} from "@/lib/server-api";
 import { RegistrationForm } from "./registration-form";
 
 export const metadata = { title: "Register" };
@@ -22,11 +18,12 @@ interface PageProps {
 
 export default async function RegisterPage({ searchParams }: PageProps) {
   const user = await requireUser("/dashboard/register");
-  const conference = await requireActiveConference();
+  const conference = await getActiveConference();
+  const cookieHeader = await forwardedCookies();
 
   // An existing registration takes precedence — send them to it rather than
-  // letting them create a second one that the action would reject anyway.
-  const existing = await getMyRegistrations(user.id, conference.id);
+  // letting them start a second one the API would reject anyway.
+  const existing = await api.registrations.listMine(cookieHeader);
   const active = existing.find(
     (row) =>
       row.registration.status === "paid" ||
@@ -34,7 +31,7 @@ export default async function RegisterPage({ searchParams }: PageProps) {
   );
   if (active) redirect(`/dashboard/registration/${active.registration.id}`);
 
-  if (!isRegistrationOpen(conference)) {
+  if (!conference?.registrationOpen) {
     return (
       <div className="rounded-lg border bg-card p-8 text-center">
         <h1 className="text-lg font-semibold">Registration is closed</h1>
@@ -49,8 +46,8 @@ export default async function RegisterPage({ searchParams }: PageProps) {
   }
 
   const [tiers, acceptedPapers, { tier: tierParam }] = await Promise.all([
-    getAvailableTiers(conference.id),
-    getRegisterableSubmissions(user.id, conference.id),
+    api.registrations.tiers(),
+    api.submissions.registerable(cookieHeader),
     searchParams,
   ]);
 
@@ -73,14 +70,7 @@ export default async function RegisterPage({ searchParams }: PageProps) {
       </div>
 
       <RegistrationForm
-        tiers={tiers.map((tier) => ({
-          id: tier.id,
-          name: tier.name,
-          category: tier.category,
-          mode: tier.mode,
-          price: tier.price,
-          description: tier.description,
-        }))}
+        tiers={tiers}
         acceptedPapers={acceptedPapers}
         defaultTierId={tierParam ? Number(tierParam) : undefined}
         user={{

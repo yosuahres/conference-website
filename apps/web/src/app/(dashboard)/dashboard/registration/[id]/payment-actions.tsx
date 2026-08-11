@@ -5,10 +5,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 
 import { Button } from "@shared/ui/components/ui/button";
-import {
-  cancelRegistration,
-  retryPayment,
-} from "@/server/registrations/actions";
+import { ApiError, api } from "@/lib/api";
 
 export function PaymentActions({ registrationId }: { registrationId: number }) {
   const router = useRouter();
@@ -20,13 +17,19 @@ export function PaymentActions({ registrationId }: { registrationId: number }) {
         disabled={pending !== null}
         onClick={async () => {
           setPending("pay");
-          const result = await retryPayment(registrationId);
-          if (!result.ok) {
+          try {
+            const handoff =
+              await api.registrations.retryPayment(registrationId);
+            // Hand off to Midtrans' hosted page.
+            window.location.href = handoff.redirectUrl;
+          } catch (cause) {
             setPending(null);
-            toast.error(result.error);
-            return;
+            toast.error(
+              cause instanceof ApiError
+                ? cause.message
+                : "Could not open the payment page.",
+            );
           }
-          window.location.href = result.data.redirectUrl;
         }}
       >
         {pending === "pay" ? "Opening payment…" : "Pay now"}
@@ -37,15 +40,18 @@ export function PaymentActions({ registrationId }: { registrationId: number }) {
         disabled={pending !== null}
         onClick={async () => {
           setPending("cancel");
-          const result = await cancelRegistration(registrationId);
-          setPending(null);
-          if (!result.ok) {
-            toast.error(result.error);
-            return;
+          try {
+            await api.registrations.cancel(registrationId);
+            toast.success("Registration cancelled.");
+            router.push("/dashboard");
+            router.refresh();
+          } catch (cause) {
+            toast.error(
+              cause instanceof ApiError ? cause.message : "Cancel failed.",
+            );
+          } finally {
+            setPending(null);
           }
-          toast.success("Registration cancelled.");
-          router.push("/dashboard");
-          router.refresh();
         }}
       >
         Cancel registration

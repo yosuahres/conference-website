@@ -4,12 +4,8 @@ import { CalendarDays, FileText, MapPin, Users } from "lucide-react";
 import { Button } from "@shared/ui/components/ui/button";
 import { Countdown } from "@/components/countdown";
 import { formatDate, formatDateRange } from "@/lib/format";
-import {
-  getActiveConference,
-  getSpeakers,
-  getTracks,
-  isSubmissionOpen,
-} from "@/server/conference/queries";
+import { api } from "@/lib/api";
+import { getActiveConference } from "@/lib/server-api";
 
 export default async function HomePage() {
   const conference = await getActiveConference();
@@ -28,12 +24,11 @@ export default async function HomePage() {
   }
 
   const [tracks, speakers] = await Promise.all([
-    getTracks(conference.id),
-    getSpeakers(conference.id),
+    api.conference.tracks(),
+    api.conference.speakers(),
   ]);
 
   const keynotes = speakers.filter((speaker) => speaker.isKeynote);
-  const submissionsOpen = isSubmissionOpen(conference);
 
   const keyDates = [
     { label: "Submission deadline", value: conference.submissionDeadline },
@@ -80,9 +75,11 @@ export default async function HomePage() {
           </div>
 
           <div className="mt-8 flex flex-wrap gap-3">
-            <Button asChild size="lg" disabled={!submissionsOpen}>
+            <Button asChild size="lg" disabled={!conference.submissionOpen}>
               <Link href="/dashboard/submissions/new">
-                {submissionsOpen ? "Submit your paper" : "Submissions closed"}
+                {conference.submissionOpen
+                  ? "Submit your paper"
+                  : "Submissions closed"}
               </Link>
             </Button>
             <Button asChild size="lg" variant="outline">
@@ -90,10 +87,10 @@ export default async function HomePage() {
             </Button>
           </div>
 
-          {conference.submissionDeadline && submissionsOpen ? (
+          {conference.submissionDeadline && conference.submissionOpen ? (
             <div className="mt-10 max-w-sm">
               <Countdown
-                target={conference.submissionDeadline.toISOString()}
+                target={conference.submissionDeadline}
                 label="Submissions close in"
               />
             </div>

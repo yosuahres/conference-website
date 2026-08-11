@@ -6,14 +6,12 @@ import {
   SubmissionStatusBadge,
 } from "@/components/status-badge";
 import { formatDate, formatIdr } from "@/lib/format";
-import { requireUser } from "@/server/auth/session";
+import { api } from "@/lib/api";
 import {
+  forwardedCookies,
   getActiveConference,
-  isRegistrationOpen,
-  isSubmissionOpen,
-} from "@/server/conference/queries";
-import { getMyRegistrations } from "@/server/registrations/queries";
-import { getMySubmissions } from "@/server/submissions/queries";
+  requireUser,
+} from "@/lib/server-api";
 
 export const metadata = { title: "Overview" };
 
@@ -29,9 +27,10 @@ export default async function DashboardPage() {
     );
   }
 
+  const cookieHeader = await forwardedCookies();
   const [submissions, registrations] = await Promise.all([
-    getMySubmissions(user.id, conference.id),
-    getMyRegistrations(user.id, conference.id),
+    api.submissions.listMine(cookieHeader),
+    api.registrations.listMine(cookieHeader),
   ]);
 
   const registration = registrations[0];
@@ -49,6 +48,16 @@ export default async function DashboardPage() {
         </h1>
         <p className="mt-1 text-sm text-muted-foreground">{conference.name}</p>
       </div>
+
+      {!user.emailVerified ? (
+        <div className="rounded-lg border border-amber-200 bg-amber-50 p-5 dark:border-amber-900 dark:bg-amber-950/40">
+          <p className="text-sm font-medium">Confirm your email address</p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            We sent a confirmation link to {user.email}. Some actions stay
+            limited until it is confirmed.
+          </p>
+        </div>
+      ) : null}
 
       {hasAccepted && !registration ? (
         <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-5 dark:border-emerald-900 dark:bg-emerald-950/40">
@@ -68,7 +77,7 @@ export default async function DashboardPage() {
       <section>
         <div className="flex items-center justify-between">
           <h2 className="text-base font-semibold">Your submissions</h2>
-          {isSubmissionOpen(conference) ? (
+          {conference.submissionOpen ? (
             <Button asChild size="sm" variant="outline">
               <Link href="/dashboard/submissions/new">New submission</Link>
             </Button>
@@ -110,7 +119,7 @@ export default async function DashboardPage() {
       <section>
         <div className="flex items-center justify-between">
           <h2 className="text-base font-semibold">Registration</h2>
-          {!registration && isRegistrationOpen(conference) ? (
+          {!registration && conference.registrationOpen ? (
             <Button asChild size="sm" variant="outline">
               <Link href="/dashboard/register">Register</Link>
             </Button>

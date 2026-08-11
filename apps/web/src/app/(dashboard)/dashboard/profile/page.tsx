@@ -1,4 +1,4 @@
-import { requireUser } from "@/server/auth/session";
+import { requireUser } from "@/lib/server-api";
 import { ProfileForm } from "./profile-form";
 
 export const metadata = { title: "Profile" };

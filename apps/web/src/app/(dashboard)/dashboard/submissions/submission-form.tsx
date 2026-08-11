@@ -22,7 +22,7 @@ import {
   submissionDraftSchema,
   type SubmissionDraftInput,
 } from "@/lib/validation/submission";
-import { saveSubmissionDraft } from "@/server/submissions/actions";
+import { ApiError, api } from "@/lib/api";
 
 interface SubmissionFormProps {
   tracks: { id: number; name: string }[];
@@ -85,24 +85,27 @@ export function SubmissionForm({
   }
 
   async function onSubmit(values: SubmissionDraftInput) {
-    const result = await saveSubmissionDraft(values, submissionId);
+    // The API re-validates everything; zod here is only for fast feedback.
+    const payload = { ...values, trackId: values.trackId ?? undefined };
 
-    if (!result.ok) {
-      toast.error(result.error);
-      // Surface server-side field errors on the matching inputs.
-      for (const [field, messages] of Object.entries(
-        result.fieldErrors ?? {},
-      )) {
+    try {
+      const result = submissionId
+        ? await api.submissions.update(submissionId, payload)
+        : await api.submissions.create(payload);
+
+      toast.success("Draft saved.");
+      router.push(`/dashboard/submissions/${result.id}`);
+      router.refresh();
+    } catch (cause) {
+      if (!(cause instanceof ApiError)) throw cause;
+      toast.error(cause.message);
+      // Surface the API's field errors on the matching inputs.
+      for (const [field, messages] of Object.entries(cause.fieldErrors ?? {})) {
         form.setError(field as keyof SubmissionDraftInput, {
           message: messages[0],
         });
       }
-      return;
     }
-
-    toast.success("Draft saved.");
-    router.push(`/dashboard/submissions/${result.data.id}`);
-    router.refresh();
   }
 
   const abstractLength = form.watch("abstract")?.length ?? 0;

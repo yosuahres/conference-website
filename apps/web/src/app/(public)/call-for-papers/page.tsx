@@ -4,12 +4,8 @@ import { notFound } from "next/navigation";
 import { Button } from "@shared/ui/components/ui/button";
 import { formatDate } from "@/lib/format";
 import { renderMarkdown } from "@/lib/markdown";
-import {
-  getActiveConference,
-  getPage,
-  getTracks,
-  isSubmissionOpen,
-} from "@/server/conference/queries";
+import { ApiError, api } from "@/lib/api";
+import { getActiveConference } from "@/lib/server-api";
 
 export const metadata = { title: "Call for Papers" };
 
@@ -18,13 +14,16 @@ export default async function CallForPapersPage() {
   if (!conference) notFound();
 
   const [tracks, page] = await Promise.all([
-    getTracks(conference.id),
-    // Long-form author guidelines are editable content; the dates and track list
-    // below come from the database so they can never drift out of sync.
-    getPage(conference.id, "call-for-papers"),
+    api.conference.tracks(),
+    // Long-form author guidelines are editable content; the dates and track
+    // list below come from the database so they can never drift out of sync.
+    api.conference.page("call-for-papers").catch((cause) => {
+      if (cause instanceof ApiError && cause.status === 404) return null;
+      throw cause;
+    }),
   ]);
 
-  const open = isSubmissionOpen(conference);
+  const open = conference.submissionOpen;
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-16">
@@ -32,20 +31,22 @@ export default async function CallForPapersPage() {
 
       <div className="mt-8 rounded-lg border bg-card p-6">
         <dl className="grid gap-4 sm:grid-cols-2">
-          {[
-            ["Submissions open", conference.submissionOpensAt],
-            ["Submission deadline", conference.submissionDeadline],
-            ["Notification", conference.notificationDate],
-            ["Camera-ready", conference.cameraReadyDeadline],
-          ]
+          {(
+            [
+              ["Submissions open", conference.submissionOpensAt],
+              ["Submission deadline", conference.submissionDeadline],
+              ["Notification", conference.notificationDate],
+              ["Camera-ready", conference.cameraReadyDeadline],
+            ] as const
+          )
             .filter(([, value]) => value)
             .map(([label, value]) => (
-              <div key={String(label)}>
+              <div key={label}>
                 <dt className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                  {label as string}
+                  {label}
                 </dt>
                 <dd className="mt-1 text-sm font-semibold">
-                  {formatDate(value as Date, conference.timezone)}
+                  {formatDate(value, conference.timezone)}
                 </dd>
               </div>
             ))}

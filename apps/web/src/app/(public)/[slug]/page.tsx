@@ -1,30 +1,34 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
+import { ApiError, api } from "@/lib/api";
 import { renderMarkdown } from "@/lib/markdown";
-import { getActiveConference, getPage } from "@/server/conference/queries";
 
 interface PageProps {
   params: Promise<{ slug: string }>;
 }
 
+async function loadPage(slug: string) {
+  try {
+    return await api.conference.page(slug);
+  } catch (cause) {
+    if (cause instanceof ApiError && cause.status === 404) return null;
+    throw cause;
+  }
+}
+
 export async function generateMetadata({
   params,
 }: PageProps): Promise<Metadata> {
-  const conference = await getActiveConference();
-  if (!conference) return {};
   const { slug } = await params;
-  const page = await getPage(conference.id, slug);
+  const page = await loadPage(slug);
   return { title: page?.title };
 }
 
 /** Catch-all for committee-authored content: About, Venue, Guidelines, … */
 export default async function CmsPage({ params }: PageProps) {
-  const conference = await getActiveConference();
-  if (!conference) notFound();
-
   const { slug } = await params;
-  const page = await getPage(conference.id, slug);
+  const page = await loadPage(slug);
   if (!page) notFound();
 
   return (

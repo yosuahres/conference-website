@@ -1,14 +1,23 @@
 import { RegistrationStatusBadge } from "@/components/status-badge";
 import { Button } from "@shared/ui/components/ui/button";
 import { formatDate, formatIdr } from "@/lib/format";
-import { requireActiveConference } from "@/server/conference/queries";
-import { listRegistrations } from "@/server/registrations/queries";
+import { api } from "@/lib/api";
+import {
+  forwardedCookies,
+  getActiveConference,
+  requireRole,
+} from "@/lib/server-api";
 
 export const metadata = { title: "Registrations" };
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3333/api";
+
 export default async function AdminRegistrationsPage() {
-  const conference = await requireActiveConference();
-  const registrations = await listRegistrations(conference.id);
+  await requireRole("admin");
+  const conference = await getActiveConference();
+  const registrations = await api.registrations.listAll(
+    await forwardedCookies(),
+  );
 
   const paidTotal = registrations
     .filter((row) => row.registration.status === "paid")
@@ -26,7 +35,8 @@ export default async function AdminRegistrationsPage() {
           </p>
         </div>
         <Button asChild variant="outline" size="sm">
-          <a href="/api/admin/registrations.csv">Export CSV</a>
+          {/* Served by the API so the CSV streams straight from the source. */}
+          <a href={`${API_URL}/registrations/admin/export.csv`}>Export CSV</a>
         </Button>
       </div>
 
@@ -70,7 +80,7 @@ export default async function AdminRegistrationsPage() {
                     {formatIdr(registration.amount)}
                   </td>
                   <td className="whitespace-nowrap p-3 text-muted-foreground">
-                    {formatDate(registration.createdAt, conference.timezone)}
+                    {formatDate(registration.createdAt, conference?.timezone)}
                   </td>
                   <td className="p-3">
                     <RegistrationStatusBadge status={registration.status} />

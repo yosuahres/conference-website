@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -8,8 +9,8 @@ import { toast } from "sonner";
 import { Button } from "@shared/ui/components/ui/button";
 import { Input } from "@shared/ui/components/ui/input";
 import { Label } from "@shared/ui/components/ui/label";
+import { ApiError, api } from "@/lib/api";
 import { profileSchema } from "@/lib/validation/registration";
-import { updateProfile } from "@/server/users/actions";
 
 type ProfileInput = z.infer<typeof profileSchema>;
 
@@ -20,6 +21,7 @@ export function ProfileForm({
   defaultValues: ProfileInput;
   email: string;
 }) {
+  const router = useRouter();
   const form = useForm<ProfileInput>({
     resolver: zodResolver(profileSchema),
     defaultValues,
@@ -28,12 +30,15 @@ export function ProfileForm({
   return (
     <form
       onSubmit={form.handleSubmit(async (values) => {
-        const result = await updateProfile(values);
-        if (!result.ok) {
-          toast.error(result.error);
-          return;
+        try {
+          await api.users.updateProfile(values);
+          toast.success("Profile updated.");
+          router.refresh();
+        } catch (cause) {
+          toast.error(
+            cause instanceof ApiError ? cause.message : "Update failed.",
+          );
         }
-        toast.success("Profile updated.");
       })}
       className="space-y-6 rounded-lg border bg-card p-6"
     >
