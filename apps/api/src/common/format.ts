@@ -1,10 +1,20 @@
 const DEFAULT_TZ = 'Asia/Jakarta';
 
-/** IDR has no minor units; plain `Intl` would render "Rp 1.500.000,00". */
 export function formatIdr(amount: number): string {
   return new Intl.NumberFormat('id-ID', {
     style: 'currency',
     currency: 'IDR',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(amount);
+}
+
+export function formatMoney(amount: number, currency = 'IDR'): string {
+  if (currency === 'IDR') return formatIdr(amount);
+
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency,
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
   }).format(amount);
@@ -47,7 +57,6 @@ export function formatDateTime(
   }).format(date);
 }
 
-/** "12–14 August 2026", collapsing the shared month and year. */
 export function formatDateRange(
   start: Date | string | null | undefined,
   end: Date | string | null | undefined,

@@ -37,7 +37,6 @@ export function formatDateTime(
   }).format(date);
 }
 
-/** "12–14 August 2026", collapsing the shared month and year. */
 export function formatDateRange(
   start: Date | string | null | undefined,
   end: Date | string | null | undefined,
@@ -65,13 +64,23 @@ export function formatIdr(amount: number) {
   }).format(amount);
 }
 
+export function formatMoney(amount: number, currency = "IDR") {
+  if (currency === "IDR") return formatIdr(amount);
+
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency,
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(amount);
+}
+
 export function formatBytes(bytes: number) {
   if (bytes < 1024) return `${bytes} B`;
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
-/** "in 6 days" / "3 days ago" — used on deadline banners. */
 export function formatRelative(value: Date | string | null | undefined) {
   const date = toDate(value);
   if (!date) return "";

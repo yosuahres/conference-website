@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 
 import { RegistrationStatusBadge } from "@/components/status-badge";
-import { formatDateTime, formatIdr } from "@/lib/format";
+import { formatDateTime, formatMoney } from "@/lib/format";
 import { ApiError, api } from "@/lib/api";
 import {
   forwardedCookies,
@@ -53,7 +53,7 @@ export default async function RegistrationDetailPage({ params }: PageProps) {
           <p className="text-sm font-medium">Payment required</p>
           <p className="mt-1 text-sm text-muted-foreground">
             Your place is reserved but not confirmed. Complete the payment to
-            secure it — confirmation is automatic once the payment clears.
+            secure it. Confirmation is automatic once the payment clears.
           </p>
           <div className="mt-4">
             <PaymentActions registrationId={registration.id} />
@@ -84,11 +84,14 @@ export default async function RegistrationDetailPage({ params }: PageProps) {
                 "Attendance",
                 registration.mode === "online" ? "Online" : "On-site",
               ],
-              ["Amount", formatIdr(registration.amount)],
+              [
+                "Amount",
+                formatMoney(registration.amount, registration.currency),
+              ],
               [
                 "Paper",
                 submission
-                  ? `${submission.reference} — ${submission.title}`
+                  ? `${submission.reference} · ${submission.title}`
                   : null,
               ],
               ["Dietary notes", registration.dietaryNotes],

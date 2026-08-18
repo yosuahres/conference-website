@@ -20,7 +20,7 @@ import {
   or,
 } from 'drizzle-orm';
 
-import { formatDateTime, formatIdr } from '../common/format';
+import { formatDateTime, formatMoney } from '../common/format';
 import { ConferenceService } from '../conference/conference.service';
 import { DATABASE_CONNECTION } from '../database/database-connection';
 import type { DrizzleDatabase } from '../database/merged-schemas';
@@ -56,10 +56,6 @@ export class RegistrationsService {
     return `INV-${prefix || 'CONF'}-${String(id).padStart(5, '0')}`;
   }
 
-  /**
-   * Tiers whose date window contains now and whose quota is not exhausted.
-   * "Early bird" simply stops appearing once its `validUntil` passes.
-   */
   async getAvailableTiers(now = new Date()) {
     const conference = await this.conferenceService.requireActive();
 
@@ -85,7 +81,7 @@ export class RegistrationsService {
     const withQuota = await Promise.all(
       rows.map(async (tier) => ({
         ...tier,
-        priceFormatted: formatIdr(tier.price),
+        priceFormatted: formatMoney(tier.price, tier.currency),
         remaining:
           tier.quota === null
             ? null
@@ -96,7 +92,6 @@ export class RegistrationsService {
     return withQuota.filter((t) => t.remaining === null || t.remaining > 0);
   }
 
-  /** Sold = paid, plus reservations still inside their payment window. */
   private async countSold(tierId: number) {
     const [row] = await this.database
       .select({ value: count() })
@@ -196,10 +191,6 @@ export class RegistrationsService {
     };
   }
 
-  /**
-   * Reserves a place and immediately opens a payment. The registration exists
-   * in `pending_payment` from this moment, which is what holds the quota slot.
-   */
   async create(user: User, dto: CreateRegistrationDto) {
     const conference = await this.conferenceService.requireActive();
 
@@ -207,7 +198,6 @@ export class RegistrationsService {
       throw new BadRequestException('Registration is closed.');
     }
 
-    // One paid or in-flight registration per person per conference.
     const existing = await this.database
       .select({ id: registrations.id, status: registrations.status })
       .from(registrations)
@@ -228,7 +218,6 @@ export class RegistrationsService {
       );
     }
 
-    // Re-resolve the tier server-side; the client cannot pick an expired price.
     const available = await this.getAvailableTiers();
     const tier = available.find((candidate) => candidate.id === dto.tierId);
     if (!tier) {
@@ -277,7 +266,6 @@ export class RegistrationsService {
           invoiceNumber: `tmp-${randomUUID()}`,
           status: 'pending_payment',
           mode: dto.mode,
-          // Snapshot the price — a later tier edit must not alter this invoice.
           amount: tier.price,
           currency: tier.currency,
           fullName: dto.fullName,
@@ -299,11 +287,6 @@ export class RegistrationsService {
       return created.id;
     });
 
-    // The row has to exist before the Snap call, because the order id derives
-    // from the invoice number which derives from the row id. If the provider
-    // then refuses, roll the reservation back — otherwise the attendee is left
-    // holding a `pending_payment` row that occupies a quota slot and blocks
-    // them from trying again.
     let payment: Awaited<ReturnType<typeof this.paymentsService.startPayment>>;
     try {
       payment = await this.paymentsService.startPayment(registrationId);
@@ -327,7 +310,7 @@ export class RegistrationsService {
         attendeeName: dto.fullName,
         invoiceNumber: registration.invoiceNumber,
         tierName: tier.name,
-        amountFormatted: formatIdr(tier.price),
+        amountFormatted: formatMoney(tier.price, tier.currency),
         expiresAt: formatDateTime(payment.expiresAt, conference.timezone),
         payUrl: `${this.configService.getOrThrow('WEB_APP_URL')}/dashboard/registration/${registrationId}`,
       },
@@ -342,7 +325,6 @@ export class RegistrationsService {
     };
   }
 
-  /** Opens a new payment attempt for a registration whose attempt lapsed. */
   async retryPayment(user: User, registrationId: number) {
     const [registration] = await this.database
       .select()
@@ -397,7 +379,6 @@ export class RegistrationsService {
     return { ok: true };
   }
 
-  /** CSV for the committee. Escapes against spreadsheet formula injection. */
   async exportCsv() {
     const conference = await this.conferenceService.requireActive();
     const rows = await this.listAll();
@@ -448,7 +429,6 @@ export class RegistrationsService {
 
     return {
       filename: `${conference.slug}-registrations.csv`,
-      // Leading BOM so Excel opens UTF-8 correctly.
       content: `﻿${[columns.map(cell).join(','), ...body].join('\r\n')}`,
     };
   }

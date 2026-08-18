@@ -1,6 +1,6 @@
 import { RegistrationStatusBadge } from "@/components/status-badge";
 import { Button } from "@shared/ui/components/ui/button";
-import { formatDate, formatIdr } from "@/lib/format";
+import { formatDate, formatIdr, formatMoney } from "@/lib/format";
 import { api } from "@/lib/api";
 import {
   forwardedCookies,
@@ -35,7 +35,6 @@ export default async function AdminRegistrationsPage() {
           </p>
         </div>
         <Button asChild variant="outline" size="sm">
-          {/* Served by the API so the CSV streams straight from the source. */}
           <a href={`${API_URL}/registrations/admin/export.csv`}>Export CSV</a>
         </Button>
       </div>
@@ -77,7 +76,7 @@ export default async function AdminRegistrationsPage() {
                     {registration.mode === "online" ? "Online" : "On-site"}
                   </td>
                   <td className="whitespace-nowrap p-3 tabular-nums">
-                    {formatIdr(registration.amount)}
+                    {formatMoney(registration.amount, registration.currency)}
                   </td>
                   <td className="whitespace-nowrap p-3 text-muted-foreground">
                     {formatDate(registration.createdAt, conference?.timezone)}

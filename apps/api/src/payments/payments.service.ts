@@ -8,7 +8,7 @@ import { ConfigService } from '@nestjs/config';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { eq } from 'drizzle-orm';
 
-import { formatDateRange, formatDateTime, formatIdr } from '../common/format';
+import { formatDateRange, formatDateTime, formatMoney } from '../common/format';
 import { DATABASE_CONNECTION } from '../database/database-connection';
 import type { DrizzleDatabase } from '../database/merged-schemas';
 import { conferences } from '../database/schemas/conference';
@@ -21,7 +21,6 @@ import { users } from '../database/schemas/users';
 import { EmailService } from '../email/email.service';
 import { MidtransService, type MidtransNotification } from './midtrans.service';
 
-/** How long an attendee has to pay before the attempt expires. */
 const PAYMENT_WINDOW_MINUTES = 60 * 24;
 
 @Injectable()
@@ -57,11 +56,6 @@ export class PaymentsService {
     return row ?? null;
   }
 
-  /**
-   * Creates a fresh payment attempt and returns a Snap token. Called on first
-   * registration and again on retry — each call gets its own `order_id`,
-   * because Midtrans never lets one be reused.
-   */
   async startPayment(registrationId: number) {
     const context = await this.loadContext(registrationId);
     if (!context) throw new BadRequestException('Unknown registration.');
@@ -115,11 +109,6 @@ export class PaymentsService {
     };
   }
 
-  /**
-   * The single place a payment outcome is written. Both the webhook and the
-   * reconciliation sweep funnel through here, and it is safe to call repeatedly
-   * with the same notification.
-   */
   async applyNotification(notification: MidtransNotification) {
     const [payment] = await this.database
       .select()
@@ -136,12 +125,10 @@ export class PaymentsService {
 
     const nextStatus = this.midtrans.mapTransactionStatus(notification);
 
-    // Idempotency: a repeated "settlement" callback must not resend the receipt.
     if (payment.status === nextStatus) {
       return { handled: true as const, changed: false as const };
     }
 
-    // Never walk a settled payment backwards on a late, stale callback.
     if (payment.status === 'paid' && nextStatus !== 'refunded') {
       return { handled: true as const, changed: false as const };
     }
@@ -206,7 +193,10 @@ export class PaymentsService {
         attendeeName: registration.fullName,
         invoiceNumber: registration.invoiceNumber,
         tierName: tier.name,
-        amountFormatted: formatIdr(registration.amount),
+        amountFormatted: formatMoney(
+          registration.amount,
+          registration.currency,
+        ),
         method: notification.payment_type ?? null,
         paidAt: formatDateTime(
           notification.settlement_time ?? new Date(),
@@ -225,10 +215,6 @@ export class PaymentsService {
     });
   }
 
-  /**
-   * Re-asks Midtrans about every payment still `pending`. This is what saves a
-   * registration whose webhook was dropped.
-   */
   @Cron(CronExpression.EVERY_30_MINUTES)
   async reconcilePendingPayments(limit = 50) {
     const pending = await this.database

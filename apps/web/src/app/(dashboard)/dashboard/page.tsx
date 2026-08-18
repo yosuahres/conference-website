@@ -5,7 +5,7 @@ import {
   RegistrationStatusBadge,
   SubmissionStatusBadge,
 } from "@/components/status-badge";
-import { formatDate, formatIdr } from "@/lib/format";
+import { formatDate, formatMoney } from "@/lib/format";
 import { api } from "@/lib/api";
 import {
   forwardedCookies,
@@ -62,7 +62,7 @@ export default async function DashboardPage() {
       {hasAccepted && !registration ? (
         <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-5 dark:border-emerald-900 dark:bg-emerald-950/40">
           <p className="text-sm font-medium">
-            Your paper has been accepted — complete your registration
+            Your paper has been accepted. Complete your registration
           </p>
           <p className="mt-1 text-sm text-muted-foreground">
             Accepted papers appear in the programme only after the presenter has
@@ -137,7 +137,10 @@ export default async function DashboardPage() {
                 <p className="font-medium">{registration.tier.name}</p>
                 <p className="mt-1 text-xs text-muted-foreground">
                   {registration.registration.invoiceNumber} ·{" "}
-                  {formatIdr(registration.registration.amount)}
+                  {formatMoney(
+                    registration.registration.amount,
+                    registration.registration.currency,
+                  )}
                 </p>
               </div>
               <RegistrationStatusBadge
