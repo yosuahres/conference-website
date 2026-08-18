@@ -1,33 +1,77 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Inter, Inter_Tight } from "next/font/google";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
 import { Toaster } from "sonner";
 
-import { getActiveConference } from "@/lib/server-api";
+import { event, tracks } from "@/content/site";
+import { siteDescription, siteName, siteTitle, siteUrl } from "@/lib/seo";
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 
-export async function generateMetadata(): Promise<Metadata> {
-  const conference = await getActiveConference();
-  return {
-    title: {
-      default: conference?.name ?? "Conference",
-      template: `%s · ${conference?.shortName ?? conference?.name ?? "Conference"}`,
+const interTight = Inter_Tight({
+  subsets: ["latin"],
+  variable: "--font-display",
+});
+
+export const metadata: Metadata = {
+  metadataBase: new URL(siteUrl),
+  title: {
+    // The homepage inherits this; every other page fills the template.
+    default: siteTitle,
+    template: `%s · ${siteName}`,
+  },
+  description: siteDescription,
+  applicationName: siteName,
+  category: "science",
+  keywords: [
+    siteName,
+    event.fullName,
+    "photonics conference 2026",
+    "optics seminar Indonesia",
+    "SPIE proceedings",
+    "call for papers photonics",
+    `conference ${event.city}`,
+    ...tracks.map((track) => track.title),
+  ],
+  authors: [{ name: `${siteName} Organizing Committee`, url: siteUrl }],
+  creator: `${siteName} Organizing Committee`,
+  publisher: siteName,
+  openGraph: {
+    type: "website",
+    siteName,
+    locale: "en_US",
+    title: siteTitle,
+    description: siteDescription,
+    url: "/",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: siteTitle,
+    description: siteDescription,
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+      "max-video-preview": -1,
     },
-    description: conference?.tagline ?? conference?.description ?? undefined,
-    metadataBase: process.env.NEXT_PUBLIC_APP_URL
-      ? new URL(process.env.NEXT_PUBLIC_APP_URL)
-      : undefined,
-  };
-}
+  },
+  verification: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION
+    ? { google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION }
+    : undefined,
+};
 
 export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${inter.variable} font-sans`}>
+      <body className={`${inter.variable} ${interTight.variable} font-sans`}>
         <NuqsAdapter>{children}</NuqsAdapter>
         <Toaster position="top-center" richColors />
       </body>

@@ -1,8 +1,13 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { FileText, LayoutDashboard, Receipt, UserCog } from "lucide-react";
 
 import { getActiveConference, requireUser } from "@/lib/server-api";
 import { SignOutButton } from "@/components/sign-out-button";
+
+export const metadata: Metadata = {
+  robots: { index: false, follow: false },
+};
 
 const NAV = [
   { href: "/dashboard", label: "Overview", icon: LayoutDashboard },

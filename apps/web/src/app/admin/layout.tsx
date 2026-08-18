@@ -1,8 +1,13 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { FileText, Home, LayoutDashboard, Receipt, Users } from "lucide-react";
 
 import { SignOutButton } from "@/components/sign-out-button";
 import { getActiveConference, requireRole } from "@/lib/server-api";
+
+export const metadata: Metadata = {
+  robots: { index: false, follow: false },
+};
 
 const NAV = [
   { href: "/admin", label: "Overview", icon: LayoutDashboard },
@@ -14,7 +19,6 @@ const NAV = [
 export default async function AdminLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
-  // Reviewers get in too; individual pages narrow further where needed.
   const user = await requireRole("admin", "reviewer");
   const conference = await getActiveConference();
 
