@@ -1,0 +1,115 @@
+name: Build and publish to cPanel
+
+# GitHub Actions does the building because a Domainesia shared plan gives you
+# 1-2GB of RAM and `next build` alone wants more than that. cPanel's Git
+# Version Control then pulls the finished artifact from the `deploy` branch and
+# only copies files. See docs/deploy-cpanel.md for the one-time server setup.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-cpanel
+  cancel-in-progress: true
+
+env:
+  DEPLOY_BRANCH: deploy
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.2.1
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Type-check
+        run: pnpm type-check
+
+      - name: Build
+        # NEXT_PUBLIC_* values are inlined at build time, not read at runtime,
+        # so they have to be present here rather than in the cPanel env panel.
+        env:
+          NEXT_PUBLIC_APP_URL: ${{ vars.NEXT_PUBLIC_APP_URL }}
+          NEXT_PUBLIC_API_URL: ${{ vars.NEXT_PUBLIC_API_URL }}
+          NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION: ${{ vars.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION }}
+        run: pnpm build
+
+      - name: Assemble web artifact
+        # The standalone tree keeps its apps/web nesting on purpose. Flattening
+        # it breaks the symlinks Next writes for workspace packages, so the
+        # cPanel startup file is apps/web/server.js rather than server.js.
+        run: |
+          mkdir -p out/web
+          cp -R apps/web/.next/standalone/. out/web/
+          mkdir -p out/web/apps/web/.next
+          cp -R apps/web/.next/static out/web/apps/web/.next/static
+          if [ -d apps/web/public ]; then cp -R apps/web/public out/web/apps/web/public; fi
+
+      - name: Assemble api artifact
+        # `pnpm deploy` resolves the workspace into a plain, self-contained
+        # node_modules so the server never has to run an install.
+        run: |
+          pnpm --filter api --prod deploy --legacy out/api
+          rm -rf out/api/src out/api/test
+          cp -R apps/api/dist out/api/dist
+
+      - name: Strip any env files from the artifact
+        # `next build` copies apps/web/.env into the standalone output when one
+        # exists. CI checks out clean so there should be none, but the deploy
+        # branch is pushed to GitHub and this is not a thing to get wrong once.
+        # Real values live in the cPanel Node.js app env panel.
+        run: find out -name '.env*' -type f -print -delete
+
+      - name: Add cPanel deploy manifest
+        run: cp ops/cpanel.yml out/.cpanel.yml
+
+      - name: Publish to ${{ env.DEPLOY_BRANCH }} branch
+        # Force-pushed as a single orphan commit every run. The branch is a
+        # build artifact, not history, and this keeps it from growing without
+        # bound as node_modules changes.
+        run: |
+          cd out
+          git init -q
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git checkout -q -b "$DEPLOY_BRANCH"
+          git add -A
+          git commit -q -m "build: ${{ github.sha }}"
+          git push -q --force \
+            "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" \
+            "$DEPLOY_BRANCH"
+
+      - name: Trigger cPanel deployment
+        # Optional. Without these secrets the build still publishes, and you
+        # click "Update from Remote" then "Deploy HEAD Commit" in cPanel.
+        # The secret is checked through `env` because the `secrets` context is
+        # not available in a step-level `if`.
+        env:
+          CPANEL_URL: ${{ secrets.CPANEL_URL }}
+          CPANEL_USER: ${{ secrets.CPANEL_USER }}
+          CPANEL_API_TOKEN: ${{ secrets.CPANEL_API_TOKEN }}
+          CPANEL_REPO_PATH: ${{ secrets.CPANEL_REPO_PATH }}
+        run: |
+          if [ -z "$CPANEL_API_TOKEN" ]; then
+            echo "No cPanel API token set, skipping. Deploy from the cPanel UI."
+            exit 0
+          fi
+          auth="Authorization: cpanel ${CPANEL_USER}:${CPANEL_API_TOKEN}"
+          curl -sSf -H "$auth" \
+            "${CPANEL_URL}/execute/VersionControl/update?repository_root=${CPANEL_REPO_PATH}"
+          curl -sSf -H "$auth" \
+            "${CPANEL_URL}/execute/VersionControlDeployment/create?repository_root=${CPANEL_REPO_PATH}"
