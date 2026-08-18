@@ -2,11 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-/*
- * Light-first. Academic conference sites are read on projectors, printed, and
- * opened on university networks with high-contrast defaults — dark-first is the
- * wrong bet here. The dark palette is still complete for anyone who wants it.
- */
 @layer base {
   :root {
     --background: 0 0% 100%;
@@ -102,15 +97,146 @@
     @apply border-border;
   }
 
+  html {
+    scroll-behavior: smooth;
+    scroll-padding-top: 5rem;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  @media (min-width: 1280px) {
+    html {
+      scroll-padding-top: 9rem;
+    }
+  }
+
   body {
     @apply bg-background text-foreground antialiased;
     font-feature-settings:
       "rlig" 1,
       "calt" 1;
+    font-synthesis-weight: none;
+    text-rendering: optimizeLegibility;
   }
 }
 
-/* Markdown rendered from the `pages` table. */
+@layer base {
+  .site-ground {
+    --site-paper: 14 14 67;
+    --site-deep: 7 7 39;
+    --site-mist: 21 21 78;
+    --site-shell: 32 32 105;
+
+    --site-ink: 255 255 255;
+    --site-subtle: 185 186 216;
+    --site-faint: 142 143 184;
+    --site-line: 42 42 104;
+
+    --site-navy: 169 169 240;
+    --site-beam: 167 139 250;
+
+    background-color: rgb(var(--site-paper));
+    background-image: linear-gradient(
+      to bottom,
+      rgb(var(--site-deep)) 0,
+      rgb(var(--site-deep)) 60px,
+      rgb(var(--site-paper)) 950px
+    );
+    background-repeat: no-repeat;
+    color: rgb(var(--site-ink));
+    color-scheme: dark;
+  }
+
+  .site-ground :focus-visible {
+    outline: 2px solid rgb(var(--site-navy));
+    outline-offset: 3px;
+    border-radius: 2px;
+  }
+
+  .site-ground ::selection {
+    background: rgb(var(--site-ink));
+    color: rgb(var(--site-paper));
+  }
+}
+
+@layer components {
+  .surface-light {
+    --site-paper: 255 255 255;
+    --site-mist: 245 246 250;
+    --site-shell: 232 234 242;
+    --site-ink: 14 14 67;
+    --site-subtle: 92 93 117;
+    --site-faint: 113 115 140;
+    --site-line: 226 228 238;
+    --site-navy: 43 43 133;
+    --site-beam: 109 63 240;
+
+    background-color: rgb(var(--site-paper));
+    color: rgb(var(--site-ink));
+    color-scheme: light;
+  }
+
+  .eyebrow {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgb(var(--site-subtle));
+  }
+
+  .rule {
+    height: 2px;
+    background: rgb(var(--site-ink));
+  }
+}
+
+@layer components {
+  .prose-site {
+    @apply max-w-none text-[0.975rem] leading-[1.8] text-subtle;
+  }
+  .prose-site h2 {
+    @apply mb-3 mt-10 font-display text-[1.35rem] font-semibold tracking-[-0.02em] text-ink;
+  }
+  .prose-site h3 {
+    @apply mb-2 mt-7 font-display text-[1.05rem] font-semibold tracking-[-0.02em] text-ink;
+  }
+  .prose-site p {
+    @apply mb-5;
+  }
+  .prose-site ul {
+    @apply mb-5 list-disc space-y-1.5 pl-5;
+  }
+  .prose-site ol {
+    @apply mb-5 list-decimal space-y-1.5 pl-5;
+  }
+  .prose-site a {
+    @apply font-medium text-ink underline decoration-line underline-offset-4 transition-colors hover:decoration-ink;
+  }
+  .prose-site strong {
+    @apply font-semibold text-ink;
+  }
+  .prose-site blockquote {
+    @apply my-6 border-l-2 border-line pl-5 italic;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    animation-delay: 0ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
 @layer components {
   .prose-conference {
     @apply max-w-none text-[15px] leading-7 text-foreground/90;

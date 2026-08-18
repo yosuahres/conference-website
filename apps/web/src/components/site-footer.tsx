@@ -1,88 +1,113 @@
+import Image from "next/image";
 import Link from "next/link";
 
-import { formatDateRange } from "@/lib/format";
-import { getActiveConference } from "@/lib/server-api";
+import {
+  brand,
+  event,
+  footerBlurb,
+  footerColumns,
+  secretariat,
+} from "@/content/site";
+import { Icon } from "./site/icon";
+import { Container, StubLink } from "./site/ui";
 
-export async function SiteFooter() {
-  const conference = await getActiveConference();
-  if (!conference) return null;
-
+export function SiteFooter() {
   return (
-    <footer className="mt-20 border-t bg-muted/40">
-      <div className="mx-auto grid max-w-6xl gap-8 px-4 py-12 sm:grid-cols-2 lg:grid-cols-4">
-        <div className="sm:col-span-2">
-          <p className="text-sm font-semibold">{conference.name}</p>
-          {conference.tagline ? (
-            <p className="mt-1 text-sm text-muted-foreground">
-              {conference.tagline}
+    <footer className="surface-light border-t border-line bg-mist">
+      <Container className="pb-16 pt-20">
+        <div className="grid gap-12 md:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1fr]">
+          <div>
+            <Image
+              src={brand.logoMain}
+              alt={`${event.shortName} ${event.edition}`}
+              width={brand.logoMainWidth}
+              height={brand.logoMainHeight}
+              sizes="(min-width: 768px) 280px, 220px"
+              className="h-[72px] w-auto mix-blend-multiply md:h-24"
+            />
+            <p className="mt-5 max-w-xs text-[0.83rem] leading-[1.75] text-subtle">
+              {footerBlurb}
             </p>
-          ) : null}
-          <p className="mt-4 text-sm text-muted-foreground">
-            {formatDateRange(
-              conference.startsOn,
-              conference.endsOn,
-              conference.timezone,
-            )}
-            {conference.venueName ? ` · ${conference.venueName}` : ""}
-            {conference.city ? `, ${conference.city}` : ""}
-          </p>
-        </div>
+          </div>
 
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-            Authors
-          </p>
-          <ul className="mt-3 space-y-2 text-sm">
-            <li>
-              <Link href="/call-for-papers" className="hover:underline">
-                Call for Papers
-              </Link>
-            </li>
-            <li>
-              <Link
-                href="/dashboard/submissions/new"
-                className="hover:underline"
-              >
-                Submit a paper
-              </Link>
-            </li>
-            <li>
-              <Link href="/register" className="hover:underline">
-                Registration fees
-              </Link>
-            </li>
-          </ul>
-        </div>
+          <div>
+            <p className="font-display text-[1.25rem] font-semibold tracking-[-0.02em]">
+              Get In Touch
+            </p>
+            <div className="rule mt-3 w-20" />
 
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-            Contact
-          </p>
-          <ul className="mt-3 space-y-2 text-sm">
-            {conference.contactEmail ? (
-              <li>
+            <address className="mt-6 space-y-3.5 text-[0.85rem] not-italic leading-[1.7] text-subtle">
+              <div className="flex items-start gap-2.5">
+                <Icon
+                  name="pin"
+                  className="mt-1 size-3.5 shrink-0 text-faint"
+                />
+                <span>
+                  {secretariat.lines.map((line) => (
+                    <span key={line} className="block">
+                      {line}
+                    </span>
+                  ))}
+                </span>
+              </div>
+
+              <div className="flex items-start gap-2.5">
+                <Icon
+                  name="signal"
+                  className="mt-1 size-3.5 shrink-0 text-faint"
+                />
+                <span>
+                  Telp/Fax:{" "}
+                  <a
+                    href={secretariat.phoneHref}
+                    className="transition-colors hover:text-ink"
+                  >
+                    {secretariat.phoneLabel}
+                  </a>
+                </span>
+              </div>
+
+              <div className="flex items-start gap-2.5">
+                <Icon
+                  name="mail"
+                  className="mt-1 size-3.5 shrink-0 text-faint"
+                />
                 <a
-                  href={`mailto:${conference.contactEmail}`}
-                  className="hover:underline"
+                  href={`mailto:${secretariat.email}`}
+                  className="underline decoration-line underline-offset-4 transition-colors hover:text-ink"
                 >
-                  {conference.contactEmail}
+                  {secretariat.email}
                 </a>
-              </li>
-            ) : null}
-            {conference.venueAddress ? (
-              <li className="text-muted-foreground">
-                {conference.venueAddress}
-              </li>
-            ) : null}
-          </ul>
-        </div>
-      </div>
+              </div>
+            </address>
+          </div>
 
-      <div className="border-t py-6">
-        <p className="mx-auto max-w-6xl px-4 text-xs text-muted-foreground">
-          © {new Date().getFullYear()} {conference.name}. All rights reserved.
-        </p>
-      </div>
+          {footerColumns.map((column) => (
+            <nav key={column.heading} aria-label={column.heading}>
+              <p className="font-display text-[1.25rem] font-semibold tracking-[-0.02em]">
+                {column.heading}
+              </p>
+              <div className="rule mt-3 w-20" />
+              <ul className="mt-6 space-y-3 text-[0.85rem]">
+                {column.links.map((link) => (
+                  <li key={link.label}>
+                    {link.href ? (
+                      <Link
+                        href={link.href}
+                        className="text-subtle transition-colors hover:text-ink"
+                      >
+                        {link.label}
+                      </Link>
+                    ) : (
+                      <StubLink>{link.label}</StubLink>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            </nav>
+          ))}
+        </div>
+      </Container>
     </footer>
   );
 }

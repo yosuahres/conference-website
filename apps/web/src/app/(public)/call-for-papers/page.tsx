@@ -1,90 +1,173 @@
+import Image from "next/image";
 import Link from "next/link";
-import { notFound } from "next/navigation";
 
-import { Button } from "@shared/ui/components/ui/button";
-import { formatDate } from "@/lib/format";
-import { renderMarkdown } from "@/lib/markdown";
-import { ApiError, api } from "@/lib/api";
-import { getActiveConference } from "@/lib/server-api";
+import { Container } from "@/components/site/ui";
+import { Icon } from "@/components/site/icon";
+import { event, submissionInfo, templateDownloads } from "@/content/site";
+import { pageMetadata } from "@/lib/seo";
 
-export const metadata = { title: "Call for Papers" };
+export const metadata = pageMetadata({
+  title: "Call for Papers",
+  description: `Submit a 2 to 6 page full paper to ${event.shortName} ${event.edition} by 15 September 2026. Double-blind review, with accepted and presented papers published in the Proceedings of SPIE and indexed in Scopus.`,
+  path: "/call-for-papers",
+});
 
-export default async function CallForPapersPage() {
-  const conference = await getActiveConference();
-  if (!conference) notFound();
+function Label({ children }: { children: React.ReactNode }) {
+  return (
+    <h2 className="font-display text-[1.05rem] font-semibold tracking-[-0.02em]">
+      {children}
+    </h2>
+  );
+}
 
-  const [tracks, page] = await Promise.all([
-    api.conference.tracks(),
-    // Long-form author guidelines are editable content; the dates and track
-    // list below come from the database so they can never drift out of sync.
-    api.conference.page("call-for-papers").catch((cause) => {
-      if (cause instanceof ApiError && cause.status === 404) return null;
-      throw cause;
-    }),
-  ]);
+function Body({ children }: { children: React.ReactNode }) {
+  return (
+    <p className="mt-3 text-[0.925rem] leading-[1.7] text-ink">{children}</p>
+  );
+}
 
-  const open = conference.submissionOpen;
+function Bullet({ children }: { children: React.ReactNode }) {
+  return (
+    <li className="grid grid-cols-[0.9rem_1fr] gap-x-2 text-[0.925rem] leading-[1.7] text-ink">
+      <span aria-hidden className="pt-[0.55em] text-faint">
+        <span className="block size-[5px] rounded-full bg-current" />
+      </span>
+      <span>{children}</span>
+    </li>
+  );
+}
+
+const linkClass =
+  "font-medium text-beam underline decoration-beam/30 underline-offset-4 transition-colors hover:decoration-beam";
+
+function FileLink({ href, label }: { href: string; label: string }) {
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      className={linkClass}
+    >
+      {label}
+      <span className="sr-only"> (opens in a new tab)</span>
+    </a>
+  );
+}
+
+export default function CallForPapersPage() {
+  const { publication, plagiarism, instructions, templates, method } =
+    submissionInfo;
 
   return (
-    <div className="mx-auto max-w-3xl px-4 py-16">
-      <h1 className="text-3xl font-bold tracking-tight">Call for Papers</h1>
+    <div className="surface-light">
+      <Container className="py-8 md:py-10">
+        {/* Paper Publication */}
+        <section>
+          <Label>{publication.heading}</Label>
+          <Body>{publication.lead}</Body>
 
-      <div className="mt-8 rounded-lg border bg-card p-6">
-        <dl className="grid gap-4 sm:grid-cols-2">
-          {(
-            [
-              ["Submissions open", conference.submissionOpensAt],
-              ["Submission deadline", conference.submissionDeadline],
-              ["Notification", conference.notificationDate],
-              ["Camera-ready", conference.cameraReadyDeadline],
-            ] as const
-          )
-            .filter(([, value]) => value)
-            .map(([label, value]) => (
-              <div key={label}>
-                <dt className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                  {label}
-                </dt>
-                <dd className="mt-1 text-sm font-semibold">
-                  {formatDate(value, conference.timezone)}
-                </dd>
-              </div>
+          <div className="mt-4 flex flex-col gap-3 rounded-2xl border border-line bg-shell p-4 sm:flex-row sm:items-center sm:gap-5 sm:px-5">
+            <Image
+              src="/brand/spie.png"
+              alt="SPIE"
+              width={474}
+              height={94}
+              sizes="132px"
+              className="h-8 w-auto shrink-0 mix-blend-multiply"
+            />
+            <div>
+              <p className="text-[0.925rem] font-medium leading-[1.6]">
+                {publication.proceedings}
+              </p>
+              <p className="mt-1 text-[0.85rem] leading-[1.65] text-ink">
+                {publication.indexing}
+              </p>
+            </div>
+          </div>
+
+          <ul className="mt-3 grid gap-y-1.5">
+            {publication.points.map((point) => (
+              <Bullet key={point}>{point}</Bullet>
             ))}
-        </dl>
+          </ul>
+        </section>
 
-        <div className="mt-6 border-t pt-6">
-          <Button asChild disabled={!open}>
-            <Link href="/dashboard/submissions/new">
-              {open ? "Start a submission" : "Submissions are closed"}
-            </Link>
-          </Button>
-        </div>
-      </div>
+        {/* Policy on Plagiarism */}
+        <section className="mt-7">
+          <Label>{plagiarism.heading}</Label>
+          <Body>{plagiarism.body}</Body>
+        </section>
 
-      {tracks.length > 0 ? (
-        <section className="mt-12">
-          <h2 className="text-xl font-semibold">Topics of interest</h2>
-          <ul className="mt-4 space-y-3">
-            {tracks.map((track) => (
-              <li key={track.id} className="rounded-md border bg-card p-4">
-                <p className="text-sm font-medium">{track.name}</p>
-                {track.description ? (
-                  <p className="mt-1 text-sm text-muted-foreground">
-                    {track.description}
-                  </p>
-                ) : null}
+        {/* Instruction to Authors */}
+        <section className="mt-7">
+          <Label>{instructions.heading}</Label>
+          <Body>{instructions.body}</Body>
+        </section>
+
+        {/* Paper Template */}
+        <section className="mt-7">
+          <Label>{templates.heading}</Label>
+          <Body>{templates.lead}</Body>
+
+          <ul className="mt-3 flex flex-wrap gap-x-8 gap-y-3">
+            {templateDownloads.map((doc) => (
+              <li
+                key={doc.label}
+                className="flex items-center gap-2 text-[0.925rem] leading-[1.7]"
+              >
+                <span aria-hidden className="text-faint">
+                  <Icon name="download" className="size-[17px]" />
+                </span>
+                <span>
+                  {doc.label} (
+                  {doc.files.map((file, i) => (
+                    <span key={file.href}>
+                      {i > 0 ? ", " : null}
+                      <FileLink href={file.href} label={file.format} />
+                    </span>
+                  ))}
+                  )
+                </span>
               </li>
             ))}
           </ul>
         </section>
-      ) : null}
 
-      {page ? (
-        <div
-          className="prose-conference mt-12"
-          dangerouslySetInnerHTML={{ __html: renderMarkdown(page.body) }}
-        />
-      ) : null}
+        {/* Submission Methods */}
+        <section className="mt-7">
+          <Label>{method.heading}</Label>
+          <Body>{method.intro}</Body>
+
+          <ol className="mt-3 grid gap-y-1.5">
+            {method.options.map((option) => (
+              <li
+                key={option.n}
+                className="text-[0.925rem] leading-[1.7] text-ink"
+              >
+                {option.n}.{" "}
+                {option.href.startsWith("/") ? (
+                  <Link href={option.href} className={linkClass}>
+                    {option.label}
+                  </Link>
+                ) : (
+                  <a href={option.href} className={linkClass}>
+                    {option.label}
+                  </a>
+                )}{" "}
+                ({option.formats}){option.note ? ` (${option.note}).` : null}
+              </li>
+            ))}
+          </ol>
+
+          <p className="mt-3 text-[0.925rem] leading-[1.7] text-ink">
+            {method.paperId} {method.enquiries}{" "}
+            <a href={`mailto:${event.email}`} className={linkClass}>
+              {event.email}
+            </a>
+            .
+          </p>
+        </section>
+      </Container>
     </div>
   );
 }

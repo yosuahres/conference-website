@@ -1,6 +1,8 @@
 import baseConfig from "@shared/config-tailwindcss";
 import type { Config } from "tailwindcss";
 
+const site = (name: string) => `rgb(var(--site-${name}) / <alpha-value>)`;
+
 export default {
   darkMode: ["class"],
   content: [...baseConfig.content, "../../packages/ui/src/**/*.{ts,tsx}"],
@@ -13,7 +15,34 @@ export default {
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
       },
+      fontFamily: {
+        display: ["var(--font-display)", "var(--font-sans)", "sans-serif"],
+      },
+      keyframes: {
+        "scroll-hint": {
+          "0%, 100%": { transform: "translateY(0)" },
+          "50%": { transform: "translateY(8px)" },
+        },
+        "hero-rise": {
+          from: { opacity: "0", transform: "translateY(14px)" },
+          to: { opacity: "1", transform: "none" },
+        },
+      },
+      animation: {
+        "scroll-hint": "scroll-hint 1.9s ease-in-out infinite",
+        "hero-rise": "hero-rise 0.7s cubic-bezier(0.22, 1, 0.36, 1) 0.45s both",
+      },
       colors: {
+        paper: site("paper"),
+        deep: site("deep"),
+        mist: site("mist"),
+        shell: site("shell"),
+        ink: site("ink"),
+        subtle: site("subtle"),
+        faint: site("faint"),
+        line: site("line"),
+        navy: site("navy"),
+        beam: site("beam"),
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
         card: {
