@@ -12,12 +12,6 @@ import { JwtRefreshStrategy } from './strategies/jwt-refresh.strategy';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { LocalStrategy } from './strategies/local.strategy';
 
-/**
- * Social login is optional. Most deployments — and every local checkout —
- * never configure it, and a strategy whose constructor calls `getOrThrow`
- * would take the entire API down at boot. Register them only when their
- * credentials are actually present.
- */
 function optionalOAuthProviders(): Provider[] {
   const logger = new Logger('AuthModule');
   const providers: Provider[] = [];
@@ -30,7 +24,7 @@ function optionalOAuthProviders(): Provider[] {
       providers.push(GoogleStrategy);
     } else {
       logger.warn(
-        'GOOGLE_AUTH_CLIENT_ID is set but the secret or redirect URI is missing — Google sign-in is disabled.',
+        'GOOGLE_AUTH_CLIENT_ID is set but the secret or redirect URI is missing, so Google sign-in is disabled.',
       );
     }
   }
@@ -43,7 +37,7 @@ function optionalOAuthProviders(): Provider[] {
       providers.push(GithubStrategy);
     } else {
       logger.warn(
-        'GITHUB_AUTH_CLIENT_ID is set but the secret or redirect URI is missing — GitHub sign-in is disabled.',
+        'GITHUB_AUTH_CLIENT_ID is set but the secret or redirect URI is missing, so GitHub sign-in is disabled.',
       );
     }
   }

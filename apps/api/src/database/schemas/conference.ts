@@ -11,11 +11,6 @@ import {
   uniqueIndex,
 } from 'drizzle-orm/pg-core';
 
-/**
- * One row per edition (e.g. "icse-2026"). Everything else in the schema hangs
- * off a conference so the site can host next year's edition without wiping the
- * archive of the previous one.
- */
 export const conferences = pgTable(
   'conferences',
   {
@@ -23,7 +18,7 @@ export const conferences = pgTable(
     slug: text('slug').notNull().unique(),
     name: text('name').notNull(),
     shortName: text('short_name'),
-    edition: text('edition'), // "3rd", "2026", …
+    edition: text('edition'),
     tagline: text('tagline'),
     description: text('description'),
 
@@ -35,7 +30,6 @@ export const conferences = pgTable(
     country: text('country'),
     timezone: text('timezone').notNull().default('Asia/Jakarta'),
 
-    // Key dates. Deadlines are timestamps because "23:59 AoE" matters.
     submissionOpensAt: timestamp('submission_opens_at'),
     submissionDeadline: timestamp('submission_deadline'),
     notificationDate: timestamp('notification_date'),
@@ -46,7 +40,6 @@ export const conferences = pgTable(
     websiteUrl: text('website_url'),
     bannerImageKey: text('banner_image_key'),
 
-    /** Exactly one conference should be active; it drives the public homepage. */
     isActive: boolean('is_active').notNull().default(false),
 
     createdAt: timestamp('created_at').notNull().defaultNow(),
@@ -55,10 +48,6 @@ export const conferences = pgTable(
   (table) => [index('conferences_active_idx').on(table.isActive)],
 );
 
-/**
- * Editable content blocks so the committee can change "About", "Venue" or
- * "Author Guidelines" without a deploy.
- */
 export const pages = pgTable(
   'pages',
   {
@@ -68,7 +57,6 @@ export const pages = pgTable(
       .references(() => conferences.id, { onDelete: 'cascade' }),
     slug: text('slug').notNull(),
     title: text('title').notNull(),
-    /** Markdown. Rendered server-side, so no client-side sanitiser needed. */
     body: text('body').notNull().default(''),
     navLabel: text('nav_label'),
     showInNav: boolean('show_in_nav').notNull().default(false),
@@ -81,7 +69,6 @@ export const pages = pgTable(
   ],
 );
 
-/** Topic areas authors pick from when submitting. */
 export const tracks = pgTable(
   'tracks',
   {
@@ -115,7 +102,6 @@ export const speakers = pgTable(
   (table) => [index('speakers_conference_idx').on(table.conferenceId)],
 );
 
-/** Agenda rows for the programme page. */
 export const scheduleItems = pgTable(
   'schedule_items',
   {

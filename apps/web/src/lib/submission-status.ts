@@ -26,7 +26,6 @@ export const STATUS_STYLES: Record<SubmissionStatus, string> = {
   withdrawn: "bg-muted text-muted-foreground line-through",
 };
 
-/** Authors may edit only while the paper is theirs; mirrors the API's rule. */
 export const EDITABLE_STATUSES: SubmissionStatus[] = [
   "draft",
   "revision_requested",

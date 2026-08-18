@@ -46,10 +46,6 @@ export class UsersService {
     return created;
   }
 
-  /**
-   * Used by the Google and GitHub strategies. OAuth accounts have no password,
-   * and their email is already proven, so they land verified.
-   */
   async findOrCreateOAuthUser(data: {
     email: string;
     name: string;
@@ -89,7 +85,6 @@ export class UsersService {
     return user;
   }
 
-  /** Stores the hashed refresh token; pass null to invalidate the session. */
   async setRefreshToken(userId: number, hashedToken: string | null) {
     await this.database
       .update(users)
@@ -109,7 +104,6 @@ export class UsersService {
       .update(users)
       .set({
         password: await hash(plainPassword, 10),
-        // Any outstanding session dies with a password change.
         refreshToken: null,
         updatedAt: new Date(),
       })

@@ -31,7 +31,7 @@ export function SubmissionReceivedEmail({
       <Text style={styles.heading}>We received your submission</Text>
       <Text style={styles.paragraph}>
         Dear {authorName}, thank you for submitting to {conferenceName}. Please
-        keep the reference below — quote it in any correspondence with the
+        keep the reference below and quote it in any correspondence with the
         committee.
       </Text>
       <Section style={styles.meta}>

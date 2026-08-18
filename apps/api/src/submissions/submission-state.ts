@@ -2,11 +2,6 @@ import { BadRequestException } from '@nestjs/common';
 
 import type { SubmissionStatus } from '../database/schemas/submissions';
 
-/**
- * Allowed status transitions. Postgres only knows the enum; the ordering rules
- * live here so author actions and committee actions get the same answer to
- * "can this move?".
- */
 const TRANSITIONS: Record<SubmissionStatus, SubmissionStatus[]> = {
   draft: ['submitted', 'withdrawn'],
   submitted: [
@@ -39,7 +34,6 @@ export function assertTransition(
   }
 }
 
-/** Authors may edit content only while the paper is theirs to change. */
 export const EDITABLE_STATUSES: SubmissionStatus[] = [
   'draft',
   'revision_requested',

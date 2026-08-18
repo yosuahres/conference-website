@@ -36,7 +36,6 @@ import { UsersModule } from './users/users.module';
               }),
               res: (res) => ({ statusCode: res.statusCode }),
             },
-            // Auth cookies must never reach the logs.
             redact: {
               paths: [
                 'req.headers.cookie',
@@ -50,7 +49,6 @@ import { UsersModule } from './users/users.module';
       },
       inject: [ConfigService],
     }),
-    // Drives the email retry sweep and the payment reconciliation sweep.
     ScheduleModule.forRoot(),
 
     DatabaseModule,

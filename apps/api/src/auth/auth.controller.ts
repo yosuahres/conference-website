@@ -80,8 +80,6 @@ export class AuthController {
     return toPublicUser(user);
   }
 
-  // ---------------------------------------------------------------- email --
-
   @Post('verify-email')
   @HttpCode(200)
   async verifyEmail(@Body() dto: VerifyEmailDto) {
@@ -101,7 +99,6 @@ export class AuthController {
   @HttpCode(200)
   async forgotPassword(@Body() dto: ForgotPasswordDto) {
     await this.authService.requestPasswordReset(dto.email);
-    // Always the same response — see requestPasswordReset for why.
     return { ok: true };
   }
 
@@ -112,13 +109,9 @@ export class AuthController {
     return { ok: true };
   }
 
-  // ---------------------------------------------------------------- oauth --
-
   @Get('google')
   @UseGuards(GoogleAuthGuard)
-  googleLogin() {
-    // The guard redirects to Google; nothing to do here.
-  }
+  googleLogin() {}
 
   @Get('google/callback')
   @UseGuards(GoogleAuthGuard)

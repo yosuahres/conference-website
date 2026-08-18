@@ -15,15 +15,12 @@ import {
   TEMPLATE_SUBJECTS,
 } from './templates/registry';
 
-/** Give up after this many tries; the row stays `failed` for the committee. */
 const MAX_ATTEMPTS = 3;
 
 export interface SendEmailArgs<K extends TemplateKey> {
   to: string;
   template: K;
-  /** Everything except `conferenceName`, which the service fills in. */
   props: Omit<TemplateProps[K], 'conferenceName'>;
-  /** Overrides the template's default subject line. */
   subject?: string;
   relatedType?: 'submission' | 'registration' | 'payment' | 'user';
   relatedId?: number;
@@ -44,13 +41,6 @@ export class EmailService {
     );
   }
 
-  /**
-   * Logs first, sends second. If the process dies between the two the row is
-   * left `queued` and the retry sweep picks it up — the failure mode is a late
-   * email, never a silently lost one.
-   *
-   * Never throws: a payment webhook must not fail because Resend is down.
-   */
   async send<K extends TemplateKey>(args: SendEmailArgs<K>) {
     const conferenceName = this.configService.get<string>(
       'CONFERENCE_NAME',
@@ -129,10 +119,6 @@ export class EmailService {
     }
   }
 
-  /**
-   * Re-renders each stalled email from its stored props and tries again.
-   * Driven by the scheduled sweep in EmailModule.
-   */
   async retryFailed(limit = 25) {
     const stalled = await this.database
       .select()
@@ -145,7 +131,6 @@ export class EmailService {
     let sent = 0;
     for (const row of stalled) {
       if (!isTemplateKey(row.template)) {
-        // Template was renamed or removed since the row was written.
         await this.database
           .update(emailLog)
           .set({ attempts: MAX_ATTEMPTS, error: 'unknown template' })

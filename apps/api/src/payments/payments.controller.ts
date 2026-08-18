@@ -12,14 +12,6 @@ export class PaymentsController {
     private readonly paymentsService: PaymentsService,
   ) {}
 
-  /**
-   * Midtrans HTTP notification endpoint. Set this URL in the Midtrans dashboard
-   * under Settings -> Configuration -> Payment Notification URL.
-   *
-   * Midtrans retries non-2xx for up to 24 hours, so we only signal an error for
-   * problems a retry could fix. A bad signature returns 200 — retrying it would
-   * change nothing and would keep their queue busy for a day.
-   */
   @Post('webhook/midtrans')
   @HttpCode(200)
   async midtransWebhook(@Body() notification: MidtransNotification) {

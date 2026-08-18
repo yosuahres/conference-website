@@ -61,8 +61,6 @@ export class SubmissionsService {
     return `${prefix || 'SUB'}-${String(id).padStart(4, '0')}`;
   }
 
-  // ---------------------------------------------------------------- reads --
-
   async listMine(userId: number) {
     const conference = await this.conferenceService.requireActive();
     return this.database
@@ -78,11 +76,6 @@ export class SubmissionsService {
       .orderBy(desc(submissions.updatedAt));
   }
 
-  /**
-   * Pass `submitterId` to scope the lookup to one author; omit it for admins.
-   * `reviewerId` restricts a reviewer to the papers actually assigned to them —
-   * without it, any reviewer could read every manuscript in the conference.
-   */
   async getDetail(
     submissionId: number,
     submitterId?: number,
@@ -178,7 +171,6 @@ export class SubmissionsService {
     }));
   }
 
-  /** Accepted papers the given user may register a presenter ticket against. */
   async listRegisterable(userId: number) {
     const conference = await this.conferenceService.requireActive();
     return this.database
@@ -197,8 +189,6 @@ export class SubmissionsService {
       )
       .orderBy(asc(submissions.reference));
   }
-
-  // --------------------------------------------------------------- writes --
 
   async saveDraft(user: User, dto: SaveSubmissionDto, submissionId?: number) {
     const conference = await this.conferenceService.requireActive();
@@ -263,8 +253,6 @@ export class SubmissionsService {
           })
           .where(eq(submissions.id, targetId));
       } else {
-        // The reference is derived from the row id, so insert with a throwaway
-        // unique value first and rewrite it once the id exists.
         const [created] = await tx
           .insert(submissions)
           .values({
@@ -287,7 +275,6 @@ export class SubmissionsService {
           .where(eq(submissions.id, targetId));
       }
 
-      // Authors are replaced wholesale — the form always posts the full list.
       await tx
         .delete(submissionAuthors)
         .where(eq(submissionAuthors.submissionId, targetId));
@@ -310,11 +297,6 @@ export class SubmissionsService {
     return { id };
   }
 
-  /**
-   * Hands the browser a presigned PUT. The `submission_files` row is written by
-   * `confirmUpload` after the transfer succeeds, so an abandoned upload leaves
-   * an orphaned object rather than a broken database row.
-   */
   async requestUploadUrl(
     user: User,
     submissionId: number,
@@ -373,7 +355,6 @@ export class SubmissionsService {
       version: dto.version,
     });
 
-    // Uploading the camera-ready is what completes an accepted paper.
     if (dto.kind === 'camera_ready') {
       await this.database
         .update(submissions)
@@ -384,7 +365,6 @@ export class SubmissionsService {
     return { ok: true };
   }
 
-  /** Draft -> submitted. Requires a manuscript to be on file. */
   async submitForReview(user: User, submissionId: number) {
     const conference = await this.conferenceService.requireActive();
     if (!this.conferenceService.isSubmissionOpen(conference)) {
@@ -416,8 +396,6 @@ export class SubmissionsService {
       .update(submissions)
       .set({
         status: 'submitted',
-        // Set only on first submission; a resubmitted revision keeps the
-        // original timestamp for deadline purposes.
         submittedAt: submission.submittedAt ?? now,
         updatedAt: now,
       })
@@ -465,8 +443,6 @@ export class SubmissionsService {
 
     return { ok: true };
   }
-
-  // ------------------------------------------------------------ committee --
 
   async assignReviewer(submissionId: number, dto: AssignReviewerDto) {
     const [submission] = await this.database
@@ -541,10 +517,6 @@ export class SubmissionsService {
     return { ok: true };
   }
 
-  /**
-   * Records the committee's decision and notifies the author. The email is the
-   * point — a status change alone tells nobody anything.
-   */
   async recordDecision(submissionId: number, dto: DecisionDto) {
     const conference = await this.conferenceService.requireActive();
 
@@ -604,7 +576,6 @@ export class SubmissionsService {
     return { ok: true };
   }
 
-  /** Signs a short-lived download link for a reviewer or chair. */
   async getFileDownloadUrl(fileId: number) {
     const [file] = await this.database
       .select()
@@ -620,8 +591,6 @@ export class SubmissionsService {
     );
     return { url };
   }
-
-  // -------------------------------------------------------------- helpers --
 
   private async findOwned(submissionId: number, userId: number) {
     const [submission] = await this.database

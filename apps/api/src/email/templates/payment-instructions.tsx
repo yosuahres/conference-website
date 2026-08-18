@@ -12,7 +12,6 @@ export interface PaymentInstructionsEmailProps {
   payUrl: string;
 }
 
-/** Sent the moment a registration is created, before any money moves. */
 export function PaymentInstructionsEmail({
   conferenceName,
   attendeeName,
@@ -24,7 +23,7 @@ export function PaymentInstructionsEmail({
 }: PaymentInstructionsEmailProps) {
   return (
     <EmailLayout
-      preview={`Complete your payment — ${invoiceNumber}`}
+      preview={`Complete your payment: ${invoiceNumber}`}
       conferenceName={conferenceName}
     >
       <Text style={styles.heading}>Complete your registration</Text>

@@ -31,8 +31,6 @@ import { SubmissionsService } from './submissions.service';
 export class SubmissionsController {
   constructor(private readonly submissionsService: SubmissionsService) {}
 
-  // ------------------------------------------------------------- authors --
-
   @Get()
   listMine(@CurrentUser() user: User) {
     return this.submissionsService.listMine(user.id);
@@ -59,8 +57,6 @@ export class SubmissionsController {
 
   @Get(':id')
   getOne(@CurrentUser() user: User, @Param('id', ParseIntPipe) id: number) {
-    // Admins see any paper, reviewers only their assignments, authors only
-    // their own submissions.
     if (user.role === 'admin') return this.submissionsService.getDetail(id);
     if (user.role === 'reviewer') {
       return this.submissionsService.getDetail(id, undefined, user.id);
@@ -95,8 +91,6 @@ export class SubmissionsController {
   withdraw(@CurrentUser() user: User, @Param('id', ParseIntPipe) id: number) {
     return this.submissionsService.withdraw(user, id);
   }
-
-  // ----------------------------------------------------------- committee --
 
   @Get('admin/all')
   @Roles('admin', 'reviewer')

@@ -30,14 +30,9 @@ export class ApiError extends Error {
 
 interface RequestOptions extends Omit<RequestInit, "body"> {
   body?: unknown;
-  /** Server components must forward the incoming cookie header themselves. */
   cookieHeader?: string;
 }
 
-/**
- * The one place `web` talks to `api`. Cookies carry the session in both
- * directions, so every call is credentialed — there is no token to juggle.
- */
 async function request<T>(
   path: string,
   options: RequestOptions = {},
@@ -47,7 +42,6 @@ async function request<T>(
   const response = await fetch(`${BASE_URL}${path}`, {
     ...rest,
     credentials: "include",
-    // Session-dependent data must never be served from a cache.
     cache: "no-store",
     headers: {
       ...(body !== undefined ? { "Content-Type": "application/json" } : {}),
@@ -62,10 +56,8 @@ async function request<T>(
   const payload = await response.json().catch(() => null);
 
   if (!response.ok) {
-    // Nest's ValidationPipe returns `message` as an array of field errors.
     const raw = (payload as { message?: string | string[] } | null)?.message;
     const fallback = `Request failed with ${response.status}`;
-    // An empty array is possible, so index access needs its own fallback.
     const message = Array.isArray(raw)
       ? (raw[0] ?? fallback)
       : (raw ?? fallback);
@@ -75,7 +67,6 @@ async function request<T>(
   return payload as T;
 }
 
-/** Turns Nest's flat "property must be …" strings into per-field messages. */
 function groupFieldErrors(raw: string | string[] | undefined) {
   if (!Array.isArray(raw)) return undefined;
   const grouped: Record<string, string[]> = {};

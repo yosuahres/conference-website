@@ -17,10 +17,6 @@ interface EmailLayoutProps {
   footerNote?: string;
 }
 
-/**
- * Inline styles only — Gmail strips <style> blocks, and this has to render in
- * Outlook for the reviewers who still use it.
- */
 export function EmailLayout({
   preview,
   conferenceName,

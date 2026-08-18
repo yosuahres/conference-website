@@ -30,8 +30,6 @@ export class AuthService {
     private readonly database: DrizzleDatabase,
   ) {}
 
-  // ---------------------------------------------------------------- tokens --
-
   private async generateTokens(payload: TokenPayload) {
     const accessOptions: JwtSignOptions = {
       secret: this.configService.getOrThrow('JWT_ACCESS_TOKEN_SECRET'),
@@ -67,8 +65,6 @@ export class AuthService {
     return {
       httpOnly: true,
       secure: isProduction,
-      // The web app and the API sit on different ports in development and on
-      // sibling subdomains in production, so `lax` is the tightest that works.
       sameSite: 'lax',
       domain: this.configService.get('COOKIE_DOMAIN') || undefined,
       path: '/',
@@ -98,9 +94,6 @@ export class AuthService {
     response.cookie('Refresh', '', base);
   }
 
-  // ------------------------------------------------------------- sessions --
-
-  /** Issues a fresh token pair and stores the hashed refresh token. */
   async issueSession(user: User, response: ExpressResponse) {
     const tokens = await this.generateTokens({
       userId: user.id,
@@ -121,12 +114,9 @@ export class AuthService {
     this.clearAuthCookies(response);
   }
 
-  /** Called by LocalStrategy. */
   async verifyUser(email: string, password: string): Promise<User> {
     const user = await this.usersService.findByEmail(email);
 
-    // Compare against a dummy hash when the account is missing or is OAuth-only
-    // so the response time does not reveal which emails exist.
     const stored =
       user?.password ?? '$2a$10$invalidinvalidinvalidinvalidinvalidinvalidinva';
     const matches = await compare(password, stored);
@@ -138,7 +128,6 @@ export class AuthService {
     return user;
   }
 
-  /** Called by JwtRefreshStrategy — proves the cookie matches the stored hash. */
   async verifyRefreshToken(token: string, userId: number): Promise<User> {
     const user = await this.usersService.findById(userId);
 
@@ -149,8 +138,6 @@ export class AuthService {
     return user;
   }
 
-  // -------------------------------------------------------------- register --
-
   async register(dto: CreateUserDto, response: ExpressResponse) {
     const user = await this.usersService.createUser(dto);
     await this.sendVerificationEmail(user);
@@ -158,10 +145,6 @@ export class AuthService {
     return user;
   }
 
-  /**
-   * OAuth callbacks land here. The provider has already proven the address, so
-   * the account is created verified and signed straight in.
-   */
   async loginWithProvider(
     profile: { email: string; name: string },
     response: ExpressResponse,
@@ -170,8 +153,6 @@ export class AuthService {
     await this.issueSession(user, response);
     return user;
   }
-
-  // ---------------------------------------------------- email verification --
 
   private hashToken(token: string) {
     return createHash('sha256').update(token).digest('hex');
@@ -211,7 +192,6 @@ export class AuthService {
     });
   }
 
-  /** Consumes a token and returns the user it belonged to. */
   private async consumeToken(
     token: string,
     purpose: 'email_verification' | 'password_reset',
@@ -247,13 +227,9 @@ export class AuthService {
     return user;
   }
 
-  // ------------------------------------------------------- password reset --
-
   async requestPasswordReset(email: string) {
     const user = await this.usersService.findByEmail(email);
 
-    // Always succeed: telling a stranger whether an address is registered is
-    // an account-enumeration oracle.
     if (!user) return;
 
     const token = await this.createToken(

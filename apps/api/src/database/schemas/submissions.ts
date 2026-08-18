@@ -19,11 +19,6 @@ export const submissionTypeEnum = pgEnum('submission_type', [
   'poster',
 ]);
 
-/**
- * The paper lifecycle. `withdrawn` is terminal and author-initiated; everything
- * else is driven by the committee. Transitions are enforced in
- * `src/server/submissions/state.ts`, not by the database.
- */
 export const submissionStatusEnum = pgEnum('submission_status', [
   'draft',
   'submitted',
@@ -56,7 +51,6 @@ export const submissions = pgTable(
     conferenceId: integer('conference_id')
       .notNull()
       .references(() => conferences.id, { onDelete: 'cascade' }),
-    /** The account that owns the submission and receives all notifications. */
     submitterId: integer('submitter_id')
       .notNull()
       .references(() => users.id, { onDelete: 'restrict' }),
@@ -64,7 +58,6 @@ export const submissions = pgTable(
       onDelete: 'set null',
     }),
 
-    /** Human-facing id shown to authors and printed on the programme. */
     reference: text('reference').notNull(),
 
     title: text('title').notNull(),
@@ -73,9 +66,7 @@ export const submissions = pgTable(
     type: submissionTypeEnum('type').notNull().default('full_paper'),
     status: submissionStatusEnum('status').notNull().default('draft'),
 
-    /** Set once, when the author first leaves `draft`. */
     submittedAt: timestamp('submitted_at'),
-    /** Set when the committee records accept/reject. */
     decidedAt: timestamp('decided_at'),
     decisionNote: text('decision_note'),
 
@@ -92,10 +83,6 @@ export const submissions = pgTable(
   ],
 );
 
-/**
- * Co-authors are plain rows, not accounts — most co-authors never log in.
- * `userId` is filled opportunistically when the email matches an account.
- */
 export const submissionAuthors = pgTable(
   'submission_authors',
   {
@@ -118,11 +105,6 @@ export const submissionAuthors = pgTable(
   ],
 );
 
-/**
- * Files live in object storage; only the key is kept here. Uploads are never
- * overwritten — a new upload of the same kind bumps `version`, so the review
- * history stays intact.
- */
 export const submissionFiles = pgTable(
   'submission_files',
   {
@@ -153,7 +135,6 @@ export const reviews = pgTable(
     reviewerId: integer('reviewer_id')
       .notNull()
       .references(() => users.id, { onDelete: 'cascade' }),
-    /** 1–5. Null until the reviewer submits. */
     score: integer('score'),
     recommendation: reviewRecommendationEnum('recommendation'),
     commentsToAuthor: text('comments_to_author'),

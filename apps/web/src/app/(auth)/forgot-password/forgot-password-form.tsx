@@ -55,8 +55,6 @@ export function ForgotPasswordForm() {
               new FormData(event.currentTarget).get("email"),
             );
             setPending(true);
-            // The API answers identically whether or not the account exists,
-            // so there is nothing to branch on here.
             await api.auth.forgotPassword(email).catch(() => undefined);
             setPending(false);
             setSent(true);

@@ -7,10 +7,6 @@ import { toast } from "sonner";
 import { Button } from "@shared/ui/components/ui/button";
 import { ApiError, api } from "@/lib/api";
 
-/**
- * Manuscripts are private in the bucket, so the URL is minted on click and
- * expires in minutes — a copied link is not a permanent leak.
- */
 export function DownloadButton({
   fileId,
   label,

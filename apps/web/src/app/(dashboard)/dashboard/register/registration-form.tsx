@@ -72,12 +72,10 @@ export function RegistrationForm({
     try {
       const handoff = await api.registrations.create({
         ...values,
-        // Only presenters carry a paper; sending one otherwise is noise.
         submissionId: needsPaper ? values.submissionId : null,
       });
 
       setRedirecting(true);
-      // Hand off to Midtrans' hosted payment page.
       window.location.href = handoff.redirectUrl;
     } catch (cause) {
       if (!(cause instanceof ApiError)) throw cause;
@@ -107,7 +105,7 @@ export function RegistrationForm({
             <SelectContent>
               {tiers.map((tier) => (
                 <SelectItem key={tier.id} value={String(tier.id)}>
-                  {tier.name} — {tier.priceFormatted}
+                  {tier.name} · {tier.priceFormatted}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -158,7 +156,7 @@ export function RegistrationForm({
                 <SelectContent>
                   {acceptedPapers.map((paper) => (
                     <SelectItem key={paper.id} value={String(paper.id)}>
-                      {paper.reference} — {paper.title.slice(0, 60)}
+                      {paper.reference} · {paper.title.slice(0, 60)}
                     </SelectItem>
                   ))}
                 </SelectContent>

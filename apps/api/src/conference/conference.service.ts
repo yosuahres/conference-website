@@ -19,10 +19,6 @@ export class ConferenceService {
     private readonly database: DrizzleDatabase,
   ) {}
 
-  /**
-   * The site always serves one edition. Everything public reads through here so
-   * switching to next year's conference is a single `is_active` flip.
-   */
   async getActive(): Promise<Conference | null> {
     const [row] = await this.database
       .select()
@@ -91,7 +87,6 @@ export class ConferenceService {
       .orderBy(asc(speakers.sortOrder), asc(speakers.name));
   }
 
-  /** Schedule grouped by day, for the programme page. */
   async getSchedule(conferenceId: number) {
     const rows = await this.database
       .select({ item: scheduleItems, speaker: speakers })

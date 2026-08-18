@@ -36,7 +36,7 @@ export function SubmissionDecisionEmail({
       <Text style={styles.heading}>{HEADINGS[decision]}</Text>
       <Text style={styles.paragraph}>
         Dear {authorName}, the programme committee has completed its review of{' '}
-        <strong>{reference}</strong> — &ldquo;{title}&rdquo;.
+        <strong>{reference}</strong>, &ldquo;{title}&rdquo;.
       </Text>
 
       {decision === 'accepted' ? (

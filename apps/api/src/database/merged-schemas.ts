@@ -16,8 +16,4 @@ export const mergedSchemas = {
 
 export type DatabaseSchemas = typeof mergedSchemas;
 
-/**
- * Inject this type wherever `DATABASE_CONNECTION` is injected — it carries the
- * schema through so `db.query.*` stays typed.
- */
 export type DrizzleDatabase = NodePgDatabase<DatabaseSchemas>;

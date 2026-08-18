@@ -15,24 +15,15 @@ export const emailStatusEnum = pgEnum('email_status', [
   'failed',
 ]);
 
-/**
- * Every outbound email is logged before it is sent. This is the retry queue as
- * well as the audit trail — a cron route picks up `queued`/`failed` rows with
- * `attempts < 3` and retries them, which is all the durability a conference
- * needs (no Redis, no BullMQ).
- */
 export const emailLog = pgTable(
   'email_log',
   {
     id: serial('id').primaryKey(),
     toEmail: text('to_email').notNull(),
     subject: text('subject').notNull(),
-    /** Template key, e.g. "submission-received". Matches a file in email/templates. */
     template: text('template').notNull(),
-    /** Props the template was rendered with, so a retry is reproducible. */
     payload: jsonb('payload'),
 
-    // Loose polymorphic link — "submission" / "registration" / "payment".
     relatedType: text('related_type'),
     relatedId: integer('related_id'),
 

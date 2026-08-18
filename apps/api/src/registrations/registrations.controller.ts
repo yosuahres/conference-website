@@ -23,7 +23,6 @@ import { RegistrationsService } from './registrations.service';
 export class RegistrationsController {
   constructor(private readonly registrationsService: RegistrationsService) {}
 
-  /** Public — the fees table on the marketing site reads this. */
   @Get('tiers')
   tiers() {
     return this.registrationsService.getAvailableTiers();

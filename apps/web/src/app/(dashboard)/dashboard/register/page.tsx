@@ -21,8 +21,6 @@ export default async function RegisterPage({ searchParams }: PageProps) {
   const conference = await getActiveConference();
   const cookieHeader = await forwardedCookies();
 
-  // An existing registration takes precedence — send them to it rather than
-  // letting them start a second one the API would reject anyway.
   const existing = await api.registrations.listMine(cookieHeader);
   const active = existing.find(
     (row) =>

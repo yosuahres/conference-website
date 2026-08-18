@@ -6,7 +6,6 @@ import type { PaymentStatus } from '../database/schemas/registrations';
 
 export interface SnapTransactionInput {
   orderId: string;
-  /** Whole rupiah. Midtrans rejects a non-integer gross_amount for IDR. */
   amount: number;
   customer: {
     firstName: string;
@@ -53,7 +52,6 @@ export class MidtransService {
       : 'https://api.sandbox.midtrans.com/v2';
   }
 
-  /** Basic auth with the server key as username and no password. */
   private get authHeader() {
     return `Basic ${Buffer.from(`${this.serverKey}:`).toString('base64')}`;
   }
@@ -79,7 +77,6 @@ export class MidtransService {
         },
         item_details: [
           {
-            // Midtrans validates sum(price * quantity) === gross_amount.
             id: input.item.id,
             name: input.item.name.slice(0, 50),
             price: input.amount,
@@ -106,10 +103,6 @@ export class MidtransService {
     return { token: body.token, redirectUrl: body.redirect_url };
   }
 
-  /**
-   * The webhook is public, so the signature is the only thing between an
-   * attacker and a free conference ticket. Verify before anything else.
-   */
   verifyNotificationSignature(notification: MidtransNotification): boolean {
     const expected = createHash('sha512')
       .update(
@@ -123,7 +116,6 @@ export class MidtransService {
     const received = notification.signature_key ?? '';
     if (received.length !== expected.length) return false;
 
-    // Constant-time compare so a wrong signature leaks no timing information.
     let diff = 0;
     for (let i = 0; i < expected.length; i += 1) {
       diff |= expected.charCodeAt(i) ^ received.charCodeAt(i);
@@ -131,10 +123,6 @@ export class MidtransService {
     return diff === 0;
   }
 
-  /**
-   * Collapses Midtrans' ten transaction states into the six we store. A
-   * `capture` flagged for fraud review stays `pending` — the money is not ours.
-   */
   mapTransactionStatus(
     notification: Pick<
       MidtransNotification,
@@ -164,7 +152,6 @@ export class MidtransService {
     }
   }
 
-  /** Webhooks get lost. This is the reconciliation path. */
   async fetchTransactionStatus(
     orderId: string,
   ): Promise<MidtransNotification | null> {

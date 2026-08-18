@@ -19,7 +19,6 @@ interface PageProps {
   params: Promise<{ id: string }>;
 }
 
-/** Latest version of each kind; earlier ones stay in the API's response. */
 function pickLatest(files: SubmissionFile[]) {
   const latest = new Map<string, SubmissionFile>();
   for (const file of files) {
@@ -49,7 +48,6 @@ export default async function SubmissionDetailPage({ params }: PageProps) {
     submission.status === "accepted" ||
     submission.status === "camera_ready_submitted";
 
-  // Reviewer comments are shown only after a decision is on record.
   const visibleReviews = submission.decidedAt
     ? reviews.filter((review) => review.commentsToAuthor)
     : [];

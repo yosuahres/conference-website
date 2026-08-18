@@ -21,11 +21,6 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     });
   }
 
-  /**
-   * Re-reads the user on every request rather than trusting the token body, so
-   * a role change or a deletion takes effect immediately instead of lingering
-   * until the access token expires.
-   */
   async validate(payload: TokenPayload) {
     return this.usersService.findById(payload.userId);
   }

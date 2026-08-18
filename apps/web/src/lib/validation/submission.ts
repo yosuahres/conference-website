@@ -62,6 +62,5 @@ export const decisionSchema = z.object({
   submissionId: z.coerce.number().int().positive(),
   decision: z.enum(["accepted", "rejected", "revision_requested"]),
   note: z.string().max(2000).optional().or(z.literal("")),
-  /** Whether reviewer comments are included in the notification email. */
   shareReviewerComments: z.boolean().default(true),
 });

@@ -16,7 +16,6 @@ import { users } from './users';
 import { conferences } from './conference';
 import { submissions } from './submissions';
 
-/** Presenters usually pay more than listeners; students pay less than both. */
 export const attendeeCategoryEnum = pgEnum('attendee_category', [
   'presenter',
   'participant',
@@ -36,11 +35,6 @@ export const registrationStatusEnum = pgEnum('registration_status', [
   'refunded',
 ]);
 
-/**
- * Our own payment lifecycle, deliberately smaller than the provider's. The
- * mapping from Midtrans' ten `transaction_status` values lives in
- * `src/server/payment/midtrans.ts`.
- */
 export const paymentStatusEnum = pgEnum('payment_status', [
   'pending',
   'paid',
@@ -50,10 +44,6 @@ export const paymentStatusEnum = pgEnum('payment_status', [
   'refunded',
 ]);
 
-/**
- * Price is date-gated: the tier that applies is the one whose window contains
- * "now". Overlapping windows are resolved by picking the cheapest.
- */
 export const registrationTiers = pgTable(
   'registration_tiers',
   {
@@ -61,17 +51,15 @@ export const registrationTiers = pgTable(
     conferenceId: integer('conference_id')
       .notNull()
       .references(() => conferences.id, { onDelete: 'cascade' }),
-    name: text('name').notNull(), // "Early Bird — Presenter"
+    name: text('name').notNull(),
     category: attendeeCategoryEnum('category').notNull(),
     mode: attendanceModeEnum('mode').notNull().default('onsite'),
-    /** Minor-unit-free: IDR has no cents, so this is whole rupiah. */
     price: integer('price').notNull(),
     currency: text('currency').notNull().default('IDR'),
     description: text('description'),
 
     validFrom: timestamp('valid_from'),
     validUntil: timestamp('valid_until'),
-    /** Null means unlimited. */
     quota: integer('quota'),
     isActive: boolean('is_active').notNull().default(true),
     sortOrder: integer('sort_order').notNull().default(0),
@@ -94,24 +82,19 @@ export const registrations = pgTable(
     tierId: integer('tier_id')
       .notNull()
       .references(() => registrationTiers.id, { onDelete: 'restrict' }),
-    /** Presenters link the accepted paper they are registering for. */
     submissionId: integer('submission_id').references(() => submissions.id, {
       onDelete: 'set null',
     }),
 
-    /** Sequential, human-facing, printed on the invoice. */
     invoiceNumber: text('invoice_number').notNull(),
     status: registrationStatusEnum('status')
       .notNull()
       .default('pending_payment'),
     mode: attendanceModeEnum('mode').notNull().default('onsite'),
 
-    /** Snapshot of the tier price — tiers change, issued invoices must not. */
     amount: integer('amount').notNull(),
     currency: text('currency').notNull().default('IDR'),
 
-    // Badge details, captured at registration rather than read off the profile
-    // so a later profile edit doesn't rewrite a printed badge.
     fullName: text('full_name').notNull(),
     affiliation: text('affiliation'),
     country: text('country'),
@@ -130,10 +113,6 @@ export const registrations = pgTable(
   ],
 );
 
-/**
- * One registration can accumulate several payment attempts (expired VA, retried
- * card). The registration is `paid` as soon as any payment reaches `paid`.
- */
 export const payments = pgTable(
   'payments',
   {
@@ -143,18 +122,14 @@ export const payments = pgTable(
       .references(() => registrations.id, { onDelete: 'cascade' }),
 
     provider: text('provider').notNull().default('midtrans'),
-    /** `order_id` we send to the provider; unique per attempt. */
     providerOrderId: text('provider_order_id').notNull(),
-    /** `transaction_id` the provider sends back. */
     providerTransactionId: text('provider_transaction_id'),
-    /** "bank_transfer", "qris", "credit_card", … as reported by the provider. */
     method: text('method'),
 
     amount: integer('amount').notNull(),
     currency: text('currency').notNull().default('IDR'),
     status: paymentStatusEnum('status').notNull().default('pending'),
 
-    /** Last verified webhook body, kept verbatim for dispute resolution. */
     rawPayload: jsonb('raw_payload'),
 
     expiresAt: timestamp('expires_at'),

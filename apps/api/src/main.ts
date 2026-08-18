@@ -22,8 +22,6 @@ async function bootstrap() {
   );
   app.use(cookieParser());
 
-  // The web app runs on its own origin and sends the auth cookie, so the
-  // allowed origin has to be explicit — `*` is illegal with credentials.
   app.enableCors({
     origin: configService.getOrThrow<string>('WEB_APP_URL'),
     credentials: true,

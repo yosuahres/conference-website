@@ -16,11 +16,6 @@ interface FileUploadProps {
   accept?: string;
 }
 
-/**
- * Three steps: ask the API for a presigned PUT, send the bytes straight to the
- * bucket, then tell the API it landed. The file never passes through either
- * Next.js or Nest.
- */
 export function FileUpload({
   submissionId,
   kind,
@@ -91,7 +86,6 @@ export function FileUpload({
   );
 }
 
-/** `fetch` cannot report upload progress, so this one call stays on XHR. */
 function putWithProgress(
   url: string,
   file: File,

@@ -19,7 +19,6 @@ export class RolesGuard implements CanActivate {
       [context.getHandler(), context.getClass()],
     );
 
-    // No @Roles() on the route means authentication alone is enough.
     if (!required?.length) return true;
 
     const user = context.switchToHttp().getRequest<{ user?: User }>().user;

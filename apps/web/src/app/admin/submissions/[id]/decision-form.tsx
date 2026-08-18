@@ -19,10 +19,6 @@ import { ApiError, api } from "@/lib/api";
 
 type Decision = "accepted" | "rejected" | "revision_requested";
 
-/**
- * Recording a decision emails the author immediately — there is no separate
- * "notify" step, so the button says so.
- */
 export function DecisionForm({ submissionId }: { submissionId: number }) {
   const router = useRouter();
   const [decision, setDecision] = useState<Decision>("accepted");

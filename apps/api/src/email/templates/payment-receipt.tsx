@@ -29,7 +29,7 @@ export function PaymentReceiptEmail({
 }: PaymentReceiptEmailProps) {
   return (
     <EmailLayout
-      preview={`Registration confirmed — ${invoiceNumber}`}
+      preview={`Registration confirmed: ${invoiceNumber}`}
       conferenceName={conferenceName}
     >
       <Text style={styles.heading}>Registration confirmed</Text>

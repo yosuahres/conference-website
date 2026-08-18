@@ -28,7 +28,6 @@ interface SubmissionFormProps {
   tracks: { id: number; name: string }[];
   submissionId?: number;
   defaultValues?: Partial<SubmissionDraftInput>;
-  /** Prefills the first author row for a brand-new submission. */
   currentUser?: { name: string; email: string; affiliation?: string | null };
 }
 
@@ -85,7 +84,6 @@ export function SubmissionForm({
   }
 
   async function onSubmit(values: SubmissionDraftInput) {
-    // The API re-validates everything; zod here is only for fast feedback.
     const payload = { ...values, trackId: values.trackId ?? undefined };
 
     try {
@@ -99,7 +97,6 @@ export function SubmissionForm({
     } catch (cause) {
       if (!(cause instanceof ApiError)) throw cause;
       toast.error(cause.message);
-      // Surface the API's field errors on the matching inputs.
       for (const [field, messages] of Object.entries(cause.fieldErrors ?? {})) {
         form.setError(field as keyof SubmissionDraftInput, {
           message: messages[0],
@@ -296,8 +293,6 @@ export function SubmissionForm({
                   name="corresponding"
                   checked={form.watch(`authors.${index}.isCorresponding`)}
                   onChange={() => {
-                    // Exactly one corresponding author — selecting one clears
-                    // the rest, which is what the schema validates.
                     authors.fields.forEach((_, i) =>
                       form.setValue(
                         `authors.${i}.isCorresponding`,

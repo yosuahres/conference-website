@@ -2,10 +2,6 @@ import { Controller, Get, NotFoundException, Param } from '@nestjs/common';
 
 import { ConferenceService } from './conference.service';
 
-/**
- * Entirely public. The web app renders its landing, programme and CMS pages
- * from these endpoints.
- */
 @Controller('conference')
 export class ConferenceController {
   constructor(private readonly conferenceService: ConferenceService) {}

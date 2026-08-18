@@ -45,7 +45,6 @@ export class UsersController {
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: SetRoleDto,
   ) {
-    // Guard against an admin locking the committee out of its own console.
     if (actor.id === id && dto.role !== 'admin') {
       throw new Error('You cannot remove your own admin role.');
     }

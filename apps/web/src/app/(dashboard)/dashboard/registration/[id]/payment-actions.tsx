@@ -20,7 +20,6 @@ export function PaymentActions({ registrationId }: { registrationId: number }) {
           try {
             const handoff =
               await api.registrations.retryPayment(registrationId);
-            // Hand off to Midtrans' hosted page.
             window.location.href = handoff.redirectUrl;
           } catch (cause) {
             setPending(null);

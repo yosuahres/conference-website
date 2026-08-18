@@ -48,7 +48,6 @@ export function SignInForm() {
         await api.auth.login({ email, password });
       }
 
-      // Registration signs you in too, so both paths land on the dashboard.
       router.push(next);
       router.refresh();
     } catch (cause) {

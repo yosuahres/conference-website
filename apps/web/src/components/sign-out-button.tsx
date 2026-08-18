@@ -17,8 +17,6 @@ export function SignOutButton() {
       disabled={pending}
       onClick={async () => {
         setPending(true);
-        // The API clears the cookies; ignore failures so a stale session can
-        // still be walked away from.
         await api.auth.logout().catch(() => undefined);
         router.push("/");
         router.refresh();
