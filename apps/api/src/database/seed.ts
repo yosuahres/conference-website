@@ -1,9 +1,3 @@
-/**
- * Development seed: one conference with tracks, pages, tiers and a schedule.
- * Safe to re-run — it deletes the seeded conference first and cascades.
- *
- *   pnpm db:seed
- */
 import { config } from 'dotenv';
 import { eq } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/node-postgres';
@@ -14,31 +8,21 @@ import * as schema from './schemas';
 config({ path: '.env' });
 config({ path: '.env.local', override: true });
 
-const SLUG = 'icrst-demo';
+const SLUG = 'isphoa-2026';
 
-/**
- * All dates are relative to the day you seed, so the demo conference is always
- * mid-cycle: submissions open, deadline a month out, conference next year. A
- * fixed calendar would silently expire and every page would render "closed".
- */
-const DAY = 86_400_000;
-const seededAt = new Date();
-
-function inDays(days: number, time = '23:59') {
-  const date = new Date(seededAt.getTime() + days * DAY);
-  const [hours, minutes] = time.split(':').map(Number);
-  date.setHours(hours!, minutes!, 0, 0);
-  return date;
+function wib(date: string, time = '23:59') {
+  return new Date(`${date}T${time}:00+07:00`);
 }
 
-function dateOnly(days: number) {
-  return new Date(seededAt.getTime() + days * DAY).toISOString().slice(0, 10);
-}
+const SUBMISSION_OPENS = wib('2026-06-01', '00:00');
+const SUBMISSION_DEADLINE = wib('2026-09-15');
+const NOTIFICATION = wib('2026-10-15', '00:00');
+const EARLY_BIRD_DEADLINE = wib('2026-11-01');
+const CAMERA_READY = wib('2026-11-20');
+const STARTS_ON = '2026-12-02';
+const ENDS_ON = '2026-12-03';
 
-/** Combines a day offset with a wall-clock time, for schedule rows. */
-function dayAt(days: number, time: string) {
-  return inDays(days, time);
-}
+const REGULAR_FROM = wib('2026-11-02', '00:00');
 
 async function main() {
   const url = process.env.DATABASE_URL;
@@ -51,7 +35,6 @@ async function main() {
 
   await db.delete(schema.conferences).where(eq(schema.conferences.slug, SLUG));
 
-  // Only one conference may be active, and the seeded one is about to claim it.
   await db
     .update(schema.conferences)
     .set({ isActive: false })
@@ -61,28 +44,30 @@ async function main() {
     .insert(schema.conferences)
     .values({
       slug: SLUG,
-      name: 'International Conference on Research, Science and Technology',
-      shortName: 'ICRST',
-      edition: '4th Edition',
-      tagline:
-        'Bridging research and practice across science, engineering and society.',
-      description:
-        'ICRST brings together researchers, practitioners and students for ' +
-        'three days of paper presentations, keynotes and workshops. Accepted ' +
-        'papers are published in the conference proceedings.',
-      startsOn: dateOnly(150),
-      endsOn: dateOnly(152),
-      venueName: 'Universitas Indonesia Convention Hall',
-      venueAddress: 'Jl. Margonda Raya, Pondok Cina, Beji',
-      city: 'Depok',
+      name: 'International Seminar on Photonics, Optics, and its Applications',
+      shortName: 'ISPhOA',
+      edition: '2026',
+      tagline: 'AI-driven Light-based Technology Innovations',
+      description: null,
+      startsOn: STARTS_ON,
+      endsOn: ENDS_ON,
+      venueName: 'UIN Mahmud Yunus Batusangkar',
+      venueAddress: [
+        'Jl. Jenderal Sudirman No. 137',
+        'Nagari Lima Kaum, Kec. Lima Kaum',
+        'Batusangkar, Kab. Tanah Datar',
+        'Sumatera Barat 27216',
+      ].join('\n'),
+      city: 'Batusangkar',
       country: 'Indonesia',
       timezone: 'Asia/Jakarta',
-      submissionOpensAt: inDays(-60, '00:00'),
-      submissionDeadline: inDays(30),
-      notificationDate: inDays(75, '00:00'),
-      cameraReadyDeadline: inDays(100),
-      registrationDeadline: inDays(130),
-      contactEmail: 'secretariat@icrst.example.id',
+      submissionOpensAt: SUBMISSION_OPENS,
+      submissionDeadline: SUBMISSION_DEADLINE,
+      notificationDate: NOTIFICATION,
+      cameraReadyDeadline: CAMERA_READY,
+      registrationDeadline: EARLY_BIRD_DEADLINE,
+      contactEmail: 'secretariat@isphoa2026.org',
+      websiteUrl: 'https://isphoa2026.org',
       isActive: true,
     })
     .returning();
@@ -92,21 +77,36 @@ async function main() {
   await db.insert(schema.tracks).values(
     [
       [
-        'Artificial Intelligence and Data Science',
-        'Machine learning, NLP, computer vision, applied analytics.',
+        'Halal Authentication Technologies',
+        'Optical and photonic methods for non-destructive halal verification, food authentication, and material purity testing.',
       ],
       [
-        'Sustainable Engineering',
-        'Renewable energy, materials, green manufacturing.',
+        'Life-sciences & Medical Related Technologies',
+        'Light-based innovations applied to biomedical diagnostics, therapy, imaging, and life science research.',
       ],
       [
-        'Health and Life Sciences',
-        'Public health, biomedical engineering, pharmacology.',
+        'Agriculture, Livestock, and Fisheries',
+        'Optical sensing and photonic systems for precision agriculture, aquaculture monitoring, and livestock management.',
       ],
-      ['Education and Social Sciences', 'Pedagogy, policy, digital society.'],
       [
-        'Information Systems and Security',
-        'Software engineering, networks, cybersecurity.',
+        'Manufacturing and Industries',
+        'Laser processing, optical inspection, photonic quality control, and smart manufacturing applications.',
+      ],
+      [
+        'Communication & Multimedia',
+        'Optical fiber communications, Li-Fi, photonic networks, and light-based multimedia transmission systems.',
+      ],
+      [
+        'Energy-related Sectors',
+        'Solar energy harvesting, photovoltaics, optical energy storage, and light-driven energy conversion technologies.',
+      ],
+      [
+        'Transportation-related Technologies',
+        'LiDAR for autonomous vehicles, optical traffic sensing, aerospace photonics, and navigation systems.',
+      ],
+      [
+        'Other Light-based Related Innovations',
+        'All other original research on light-based technology innovations are also welcome.',
       ],
     ].map(([name, description], index) => ({
       conferenceId,
@@ -119,41 +119,26 @@ async function main() {
   await db.insert(schema.pages).values([
     {
       conferenceId,
-      slug: 'about',
-      title: 'About the conference',
-      navLabel: 'About',
-      showInNav: true,
-      sortOrder: 1,
-      isPublished: true,
-      body: [
-        '## Scope',
-        '',
-        'ICRST is an annual, peer-reviewed conference. Every submission receives',
-        'at least two independent reviews.',
-        '',
-        '## Proceedings',
-        '',
-        'Accepted and presented papers are published in the conference',
-        'proceedings with an ISBN. Selected papers are invited to an extended',
-        'journal special issue.',
-      ].join('\n'),
-    },
-    {
-      conferenceId,
       slug: 'call-for-papers',
       title: 'Author guidelines',
       isPublished: true,
       body: [
         '## Formatting',
         '',
-        '- Full papers: 6–10 pages, IEEE two-column template',
-        '- Abstracts: 300–500 words',
-        '- Posters: one-page extended abstract',
+        '- Full paper: 4 to 6 pages maximum, SPIE proceedings template',
+        '- Original and unpublished work only',
         '',
         '## Review process',
         '',
-        'Submissions are double-blind reviewed. Remove author names and',
-        'affiliations from the manuscript before uploading.',
+        'All submitted full papers undergo double-blind peer review by our',
+        'reviewers committee. Remove author names and affiliations from the',
+        'manuscript before uploading.',
+        '',
+        '## Publication',
+        '',
+        'All accepted and presented papers are published in the Proceedings of',
+        'SPIE (Scopus indexed), and every accepted and presented paper receives',
+        'a permanent DOI.',
         '',
         '## Presentation',
         '',
@@ -167,131 +152,160 @@ async function main() {
       title: 'Venue and travel',
       navLabel: 'Venue',
       showInNav: true,
-      sortOrder: 2,
+      sortOrder: 1,
       isPublished: true,
       body: [
-        'The conference is held at the Universitas Indonesia Convention Hall in',
-        'Depok, about 45 minutes from Soekarno–Hatta International Airport.',
+        'The seminar is held at UIN Mahmud Yunus Batusangkar in Tanah Datar',
+        'Regency, West Sumatra, the historic seat of the Minangkabau Kingdom.',
         '',
-        '## Accommodation',
+        'The nearest airport is Minangkabau International Airport (PDG) in',
+        'Padang, about three hours away by road.',
         '',
-        'A block of rooms is reserved at partner hotels near campus. Booking',
-        'details are emailed to registered attendees.',
+        '## Attending online',
+        '',
+        'ISPhOA 2026 is hybrid. Online participants join over Zoom and receive',
+        'live-stream access, e-proceedings and an e-certificate.',
       ].join('\n'),
     },
   ]);
 
-  const [keynote] = await db
-    .insert(schema.speakers)
-    .values([
-      {
-        conferenceId,
-        name: 'Prof. Sari Wijayanti',
-        title: 'Professor of Computer Science',
-        affiliation: 'Institut Teknologi Bandung',
-        country: 'Indonesia',
-        bio: 'Works on multilingual NLP for low-resource languages.',
-        isKeynote: true,
-        sortOrder: 0,
-      },
-      {
-        conferenceId,
-        name: 'Dr. Michael Tan',
-        title: 'Principal Researcher',
-        affiliation: 'National University of Singapore',
-        country: 'Singapore',
-        bio: 'Research lead in sustainable materials and circular manufacturing.',
-        isKeynote: true,
-        sortOrder: 1,
-      },
-    ])
-    .returning();
-
-  await db.insert(schema.scheduleItems).values([
+  await db.insert(schema.speakers).values([
     {
       conferenceId,
-      day: dateOnly(150),
-      startsAt: dayAt(150, '08:30'),
-      endsAt: dayAt(150, '09:00'),
-      title: 'Registration and welcome coffee',
-      room: 'Main Foyer',
-    },
-    {
-      conferenceId,
-      day: dateOnly(150),
-      startsAt: dayAt(150, '09:00'),
-      endsAt: dayAt(150, '10:00'),
-      title: 'Opening keynote',
-      description: 'Multilingual NLP beyond the top hundred languages.',
-      room: 'Grand Hall',
-      speakerId: keynote!.id,
-    },
-    {
-      conferenceId,
-      day: dateOnly(150),
-      startsAt: dayAt(150, '10:30'),
-      endsAt: dayAt(150, '12:00'),
-      title: 'Parallel sessions A1–A4',
-      room: 'Rooms 201–204',
-    },
-    {
-      conferenceId,
-      day: dateOnly(151),
-      startsAt: dayAt(151, '09:00'),
-      endsAt: dayAt(151, '10:00'),
-      title: 'Day 2 keynote',
-      room: 'Grand Hall',
-    },
-  ]);
-
-  await db.insert(schema.registrationTiers).values([
-    {
-      conferenceId,
-      name: 'Early Bird — Presenter',
-      category: 'presenter',
-      mode: 'onsite',
-      price: 1_500_000,
-      description: 'On-site presentation, proceedings, lunch and materials.',
-      validUntil: inDays(80),
+      name: 'Prof. A.M. Hatta',
+      title: 'Vice Rector IV, ITS · President of InOS',
+      affiliation: 'Institut Teknologi Sepuluh Nopember',
+      country: 'Indonesia',
+      bio: 'Photonic Innovations in Industrial Applications',
+      isKeynote: true,
       sortOrder: 0,
     },
     {
       conferenceId,
-      name: 'Regular — Presenter',
-      category: 'presenter',
-      mode: 'onsite',
-      price: 1_900_000,
-      validFrom: inDays(81, '00:00'),
+      name: 'Prof. S. M. Ganapathy',
+      affiliation: 'University of Southampton',
+      country: 'United Kingdom',
+      bio: 'Advanced Optical Sensing Technologies',
+      isKeynote: true,
       sortOrder: 1,
     },
     {
       conferenceId,
-      name: 'Student Presenter',
-      category: 'student_presenter',
-      mode: 'onsite',
-      price: 1_000_000,
-      description: 'Requires a valid student card at the registration desk.',
+      name: 'A/P Dr. Ing Azhar Zam',
+      affiliation: 'NYU Abu Dhabi',
+      country: 'United Arab Emirates',
+      bio: 'Biomedical Photonics & Laser-Tissue Interaction',
+      isKeynote: true,
       sortOrder: 2,
     },
     {
       conferenceId,
-      name: 'Participant (non-presenting)',
-      category: 'participant',
-      mode: 'onsite',
-      price: 750_000,
-      quota: 200,
+      name: 'Dr. Ing R. Kanawade',
+      affiliation: 'CSIR-NCL, Pune',
+      country: 'India',
+      bio: 'Light-based Diagnostics & Spectroscopy',
+      isKeynote: true,
       sortOrder: 3,
     },
     {
       conferenceId,
-      name: 'Online Participant',
-      category: 'participant',
-      mode: 'online',
-      price: 350_000,
-      description: 'Live stream access and digital certificate.',
+      name: 'A/P Dr. P. Chaompluk',
+      affiliation: 'Chulalongkorn University',
+      country: 'Thailand',
+      bio: 'Photonic Systems for Smart Agriculture',
+      isKeynote: true,
       sortOrder: 4,
     },
   ]);
+
+  const fees = [
+    {
+      category: 'International Presenter',
+      attendee: 'presenter' as const,
+      mode: 'onsite' as const,
+      currency: 'USD',
+      earlyBird: 175,
+      regular: 220,
+      includes:
+        'Oral / poster slot, full 2-day access, seminar kit, print proceedings and certificate.',
+    },
+    {
+      category: 'International Participant',
+      attendee: 'participant' as const,
+      mode: 'onsite' as const,
+      currency: 'USD',
+      earlyBird: 240,
+      regular: 300,
+      includes:
+        'Full 2-day access, seminar kit, proceedings, networking dinner and cultural tour.',
+    },
+    {
+      category: 'National Presenter',
+      attendee: 'presenter' as const,
+      mode: 'onsite' as const,
+      currency: 'IDR',
+      earlyBird: 1_400_000,
+      regular: 1_750_000,
+      includes:
+        'Oral / poster slot, full access, proceedings, certificate and DOI assignment.',
+    },
+    {
+      category: 'National Participant',
+      attendee: 'participant' as const,
+      mode: 'onsite' as const,
+      currency: 'IDR',
+      earlyBird: 800_000,
+      regular: 1_000_000,
+      includes: 'Full 2-day access, seminar kit, proceedings and certificate.',
+    },
+    {
+      category: 'Student (National)',
+      attendee: 'student_participant' as const,
+      mode: 'onsite' as const,
+      currency: 'IDR',
+      earlyBird: 500_000,
+      regular: 650_000,
+      includes:
+        'Full 2-day access, proceedings and student certificate. Requires a valid student card at the registration desk.',
+    },
+    {
+      category: 'Online Participant',
+      attendee: 'participant' as const,
+      mode: 'online' as const,
+      currency: 'USD',
+      earlyBird: 60,
+      regular: 80,
+      includes:
+        'Live-stream access, e-proceedings, e-certificate, virtual Q&A and recorded sessions.',
+    },
+  ];
+
+  await db.insert(schema.registrationTiers).values(
+    fees.flatMap((fee, index) => [
+      {
+        conferenceId,
+        name: `Early Bird: ${fee.category}`,
+        category: fee.attendee,
+        mode: fee.mode,
+        price: fee.earlyBird,
+        currency: fee.currency,
+        description: fee.includes,
+        validUntil: EARLY_BIRD_DEADLINE,
+        sortOrder: index,
+      },
+      {
+        conferenceId,
+        name: `Regular: ${fee.category}`,
+        category: fee.attendee,
+        mode: fee.mode,
+        price: fee.regular,
+        currency: fee.currency,
+        description: fee.includes,
+        validFrom: REGULAR_FROM,
+        sortOrder: index,
+      },
+    ]),
+  );
 
   console.log(`Seeded "${conference!.name}" (id ${conferenceId}).`);
   console.log(
