@@ -5,6 +5,10 @@ import { ImageResponse } from "next/og";
 
 import { event } from "@/content/site";
 
+// The card never varies per request, so it can be rendered once at build time
+// and written out as a PNG under `output: "export"`.
+export const dynamic = "force-static";
+
 export const alt = `${event.shortName} ${event.edition} · ${event.fullName}`;
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";

@@ -3,6 +3,8 @@ import path from "node:path";
 import type { NextConfig } from "next";
 
 const isDev = process.env.NODE_ENV === "development";
+// Set by scripts/build-static.sh. See the `output` note below.
+const isStatic = process.env.STATIC_EXPORT === "1";
 
 // The API lives on its own origin, so it has to be named in connect-src or the
 // browser blocks every call the dashboard makes.
@@ -81,10 +83,21 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
-  // Emits .next/standalone: a self-contained server with only the modules the
-  // app actually imports. On a 1GB cPanel plan this is the difference between
-  // a Node process that fits in the LVE limit and one Passenger keeps killing.
-  output: "standalone",
+  // Two shapes, because the host decides which one is possible.
+  //
+  // standalone: a self-contained Node server with only the modules the app
+  // actually imports. The whole app, dashboard and admin included. Needs a
+  // plan that can run Node.
+  //
+  // export: plain HTML, CSS and JS that any Apache can serve, which is all a
+  // DomaiNesia Nimbus One plan offers. The public pages prerender to static
+  // HTML either way, so nothing about them changes; what it costs is every
+  // route that needs a server at request time. scripts/build-static.sh removes
+  // those before building, and next.config's headers() has no effect here, so
+  // ops/htaccess carries the same security headers for Apache to set.
+  ...(isStatic
+    ? { output: "export" as const, images: { unoptimized: true } }
+    : { output: "standalone" as const }),
   // pnpm workspace: without this Next traces from apps/web and misses the
   // hoisted node_modules at the repo root, producing a standalone build that
   // crashes on first require.
@@ -98,14 +111,16 @@ const nextConfig: NextConfig = {
       bodySizeLimit: "4mb",
     },
   },
-  async headers() {
-    return [
-      {
-        source: "/:path*",
-        headers: securityHeaders,
-      },
-    ];
-  },
+  // A static export has no server to set these, and Next errors if headers()
+  // is declared alongside output:"export". ops/htaccess is the counterpart
+  // that hands the same list to Apache; change one and change the other.
+  ...(isStatic
+    ? {}
+    : {
+        async headers() {
+          return [{ source: "/:path*", headers: securityHeaders }];
+        },
+      }),
 };
 
 export default nextConfig;

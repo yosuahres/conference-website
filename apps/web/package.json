@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev --turbopack --port 3000",
     "build": "next build",
+    "build:static": "bash scripts/build-static.sh",
     "start": "next start --port 3000",
     "clean": "rimraf .next node_modules .turbo",
     "lint": "eslint \"src/**/*.{ts,tsx}\" --fix",

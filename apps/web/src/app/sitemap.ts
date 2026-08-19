@@ -2,6 +2,10 @@ import type { MetadataRoute } from "next";
 
 import { absoluteUrl } from "@/lib/seo";
 
+// The route list is a constant, so this is already computed once per build.
+// Saying so explicitly is what lets `output: "export"` emit it as a file.
+export const dynamic = "force-static";
+
 /**
  * Every publicly indexable route. Anything behind sign-in stays out, and is
  * blocked again in robots.ts.

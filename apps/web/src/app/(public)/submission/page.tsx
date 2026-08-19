@@ -54,9 +54,24 @@ function FileLink({ href, label }: { href: string; label: string }) {
   );
 }
 
+/**
+ * A static export has no dashboard to submit through, so the options pointing
+ * at one would be links to a 404. Drop them and renumber, leaving the email
+ * route as method 1, which is the truth on that build. Evaluated at build
+ * time, so nothing about this reaches the browser.
+ */
+function availableMethods(options: typeof submissionInfo.method.options) {
+  const hasDashboard = process.env.STATIC_EXPORT !== "1";
+
+  return options
+    .filter((option) => hasDashboard || !option.href.startsWith("/"))
+    .map((option, i) => ({ ...option, n: String(i + 1) }));
+}
+
 export default function SubmissionPage() {
   const { publication, plagiarism, instructions, templates, method } =
     submissionInfo;
+  const methodOptions = availableMethods(method.options);
 
   return (
     <div className="surface-light flex-1 bg-mist">
@@ -139,7 +154,7 @@ export default function SubmissionPage() {
           <Body>{method.intro}</Body>
 
           <ol className="mt-3 grid gap-y-1.5">
-            {method.options.map((option) => (
+            {methodOptions.map((option) => (
               <li
                 key={option.n}
                 className="text-[0.925rem] leading-[1.7] text-ink"

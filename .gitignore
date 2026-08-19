@@ -41,3 +41,7 @@ dist/
 # Client-facing screenshot/design reports generated at the repo root. Tens of MB
 # of JPEG each, regenerated rather than edited, and of no use to a build.
 /*.pdf
+
+# Output of apps/web/scripts/build-static.sh: the upload-to-cPanel artifact.
+dist-static/
+dist-static.zip
