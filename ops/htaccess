@@ -1,8 +1,8 @@
 # ---------------------------------------------------------------- routing ---
 # `next build` with output:"export" writes /submission.html, not
 # /submission/index.html, so Apache has to be told to serve the former when the
-# latter is asked for. MultiViews would also do it, but it guesses by content
-# negotiation; this is explicit.
+# latter is asked for. The RewriteRule further down does that explicitly.
+#
 # MultiViews would let Apache pick between submission.html and submission.txt
 # for a request to /submission, and the .txt is the React payload, not a page.
 # The IfModule guard is not decoration: if the host does not allow `Options` in
