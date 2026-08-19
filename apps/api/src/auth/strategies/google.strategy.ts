@@ -7,7 +7,7 @@ import { UsersService } from '../../users/users.service';
 
 interface OAuthProfile {
   displayName: string;
-  emails?: { value: string }[];
+  emails?: { value: string; verified?: boolean | string }[];
 }
 
 @Injectable()
@@ -29,12 +29,19 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
     _refreshToken: string,
     profile: OAuthProfile,
   ) {
-    const email = profile.emails?.[0]?.value;
-    if (!email) throw new Error('Google account has no email address.');
+    const primary = profile.emails?.[0];
+    if (!primary?.value)
+      throw new Error('Google account has no email address.');
+
+    // passport-google-oauth20 surfaces the verified flag as a boolean or the
+    // string 'true' depending on the userinfo shape, so compare loosely.
+    const emailVerified =
+      primary.verified === true || primary.verified === 'true';
 
     return this.usersService.findOrCreateOAuthUser({
-      email,
-      name: profile.displayName || email,
+      email: primary.value,
+      name: profile.displayName || primary.value,
+      emailVerified,
     });
   }
 }

@@ -123,6 +123,23 @@ export class PaymentsService {
       return { handled: false as const };
     }
 
+    // The signature covers order_id + status_code + gross_amount, so a mismatch
+    // here is not a forgery -- it means the amount charged is not the amount
+    // invoiced (a tier price edited mid-flight, or a Snap transaction recreated
+    // with different details). Marking that 'paid' would seat an attendee who
+    // underpaid, so refuse it and leave the payment pending for a human.
+    const paidAmount = Number(notification.gross_amount);
+    if (
+      !Number.isFinite(paidAmount) ||
+      Math.round(paidAmount) !== payment.amount
+    ) {
+      this.logger.error(
+        `amount mismatch on order ${notification.order_id}: ` +
+          `notified ${notification.gross_amount}, expected ${payment.amount}`,
+      );
+      return { handled: false as const };
+    }
+
     const nextStatus = this.midtrans.mapTransactionStatus(notification);
 
     if (payment.status === nextStatus) {

@@ -8,8 +8,14 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { Throttle } from '@nestjs/throttler';
 import type { Response as ExpressResponse } from 'express';
 
+import {
+  AUTH_THROTTLE,
+  EMAIL_THROTTLE,
+  TOKEN_THROTTLE,
+} from '../common/throttling/throttler.config';
 import { toPublicUser, type User } from '../database/schemas/users';
 import { CreateUserDto } from '../users/dto/create-user.dto';
 import { AuthService } from './auth.service';
@@ -33,6 +39,7 @@ export class AuthController {
   ) {}
 
   @Post('register')
+  @Throttle(EMAIL_THROTTLE)
   async register(
     @Body() dto: CreateUserDto,
     @Res({ passthrough: true }) response: ExpressResponse,
@@ -43,6 +50,7 @@ export class AuthController {
 
   @Post('login')
   @HttpCode(200)
+  @Throttle(AUTH_THROTTLE)
   @UseGuards(LocalAuthGuard)
   async login(
     @CurrentUser() user: User,
@@ -54,6 +62,7 @@ export class AuthController {
 
   @Post('refresh')
   @HttpCode(200)
+  @Throttle(AUTH_THROTTLE)
   @UseGuards(JwtRefreshAuthGuard)
   async refresh(
     @CurrentUser() user: User,
@@ -82,6 +91,7 @@ export class AuthController {
 
   @Post('verify-email')
   @HttpCode(200)
+  @Throttle(TOKEN_THROTTLE)
   async verifyEmail(@Body() dto: VerifyEmailDto) {
     const user = await this.authService.verifyEmail(dto.token);
     return toPublicUser(user);
@@ -89,6 +99,7 @@ export class AuthController {
 
   @Post('resend-verification')
   @HttpCode(200)
+  @Throttle(EMAIL_THROTTLE)
   @UseGuards(JwtAuthGuard)
   async resendVerification(@CurrentUser() user: User) {
     if (!user.emailVerified) await this.authService.sendVerificationEmail(user);
@@ -97,6 +108,7 @@ export class AuthController {
 
   @Post('forgot-password')
   @HttpCode(200)
+  @Throttle(EMAIL_THROTTLE)
   async forgotPassword(@Body() dto: ForgotPasswordDto) {
     await this.authService.requestPasswordReset(dto.email);
     return { ok: true };
@@ -104,6 +116,7 @@ export class AuthController {
 
   @Post('reset-password')
   @HttpCode(200)
+  @Throttle(TOKEN_THROTTLE)
   async resetPassword(@Body() dto: ResetPasswordDto) {
     await this.authService.resetPassword(dto.token, dto.password);
     return { ok: true };

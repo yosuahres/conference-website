@@ -14,6 +14,13 @@ concurrency:
   group: deploy-cpanel
   cancel-in-progress: true
 
+# The repository default for GITHUB_TOKEN is read-only, which is enough to check
+# the source out but not to force-push the `deploy` branch, so without this the
+# last step fails with a 403. Granting it per workflow rather than flipping the
+# repository-wide default leaves every other workflow read-only.
+permissions:
+  contents: write
+
 env:
   DEPLOY_BRANCH: deploy
 
@@ -60,11 +67,28 @@ jobs:
           if [ -d apps/web/public ]; then cp -R apps/web/public out/web/apps/web/public; fi
 
       - name: Assemble api artifact
+        # The public site is the whole of the first iteration, so the API is
+        # built and type-checked on every run but not shipped. Publishing it
+        # costs a ~994-package production install and ~132MB on the deploy
+        # branch per push, which buys nothing while no subdomain points at it.
+        # It is still built above, so a green run is not a claim that only
+        # holds while the API is switched off.
+        #
+        # To ship it later: set the repository variable DEPLOY_API to `true`
+        # (Settings > Secrets and variables > Actions > Variables tab), create
+        # the second cPanel Node.js app, and re-run this workflow. Nothing else
+        # changes -- ops/cpanel.yml already handles both shapes.
+        #
         # `pnpm deploy` resolves the workspace into a plain, self-contained
         # node_modules so the server never has to run an install.
+        if: vars.DEPLOY_API == 'true'
         run: |
           pnpm --filter api --prod deploy --legacy out/api
-          rm -rf out/api/src out/api/test
+          rm -rf out/api/src out/api/test out/api/.turbo
+          # `pnpm deploy` copies the whole package directory, dist included, so
+          # the destination already exists and `cp -R src dst` would nest the
+          # build as out/api/dist/dist. Replace it instead of copying into it.
+          rm -rf out/api/dist
           cp -R apps/api/dist out/api/dist
 
       - name: Strip any env files from the artifact

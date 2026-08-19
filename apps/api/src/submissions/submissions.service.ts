@@ -337,21 +337,60 @@ export class SubmissionsService {
     const uploadUrl = await this.storageService.createUploadUrl(
       storageKey,
       dto.contentType,
+      dto.sizeBytes,
     );
 
     return { uploadUrl, storageKey, version };
   }
 
   async confirmUpload(user: User, submissionId: number, dto: ConfirmUploadDto) {
+    const conference = await this.conferenceService.requireActive();
     await this.findOwned(submissionId, user.id);
+
+    if (!ALLOWED_MANUSCRIPT_TYPES.includes(dto.contentType)) {
+      throw new BadRequestException(
+        'Only PDF and Word documents are accepted.',
+      );
+    }
+
+    // The client sends back a storageKey, but it is not the client's to choose.
+    // Taking it at face value would let any author attach an arbitrary object
+    // in the bucket -- another author's manuscript, say -- to their own
+    // submission, and reviewers would then be served that file. Rebuilding the
+    // key from the same inputs used to sign the upload means the only key that
+    // can ever be stored is one we produced.
+    const expectedKey = this.storageService.buildSubmissionFileKey({
+      conferenceSlug: conference.slug,
+      submissionId,
+      kind: dto.kind,
+      version: dto.version,
+      fileName: dto.fileName,
+    });
+
+    if (expectedKey !== dto.storageKey) {
+      throw new BadRequestException('That upload does not match this file.');
+    }
+
+    // And confirm something is actually there, at a size we allow. sizeBytes
+    // from the request is a claim; ContentLength from S3 is a fact.
+    const object = await this.storageService.statObject(expectedKey);
+    if (!object) {
+      throw new BadRequestException(
+        'We could not find that upload. Please try again.',
+      );
+    }
+    if (object.sizeBytes > MAX_MANUSCRIPT_BYTES) {
+      await this.storageService.deleteObject(expectedKey);
+      throw new BadRequestException('Files must be 25 MB or smaller.');
+    }
 
     await this.database.insert(submissionFiles).values({
       submissionId,
       kind: dto.kind,
-      storageKey: dto.storageKey,
+      storageKey: expectedKey,
       fileName: dto.fileName,
-      mimeType: dto.contentType,
-      sizeBytes: dto.sizeBytes,
+      mimeType: object.contentType || dto.contentType,
+      sizeBytes: object.sizeBytes,
       version: dto.version,
     });
 
@@ -576,7 +615,13 @@ export class SubmissionsService {
     return { ok: true };
   }
 
-  async getFileDownloadUrl(fileId: number) {
+  /**
+   * Reviewers hold a role, not a blanket licence to read every manuscript in
+   * the conference. Without the assignment check below, any reviewer could walk
+   * fileId 1..n and pull down the full set, which is both a confidentiality
+   * breach and the end of double-blind review.
+   */
+  async getFileDownloadUrl(actor: User, fileId: number) {
     const [file] = await this.database
       .select()
       .from(submissionFiles)
@@ -584,6 +629,25 @@ export class SubmissionsService {
       .limit(1);
 
     if (!file) throw new NotFoundException('File not found.');
+
+    if (actor.role !== 'admin') {
+      const [assignment] = await this.database
+        .select({ id: reviews.id })
+        .from(reviews)
+        .where(
+          and(
+            eq(reviews.submissionId, file.submissionId),
+            eq(reviews.reviewerId, actor.id),
+          ),
+        )
+        .limit(1);
+
+      if (!assignment) {
+        // Same shape as a missing file: a reviewer probing ids should not be
+        // able to tell "exists but not yours" from "does not exist".
+        throw new NotFoundException('File not found.');
+      }
+    }
 
     const url = await this.storageService.createDownloadUrl(
       file.storageKey,

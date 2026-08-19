@@ -31,7 +31,5 @@ export function isRegistrationOpen(now = Date.now()): boolean {
 }
 
 export function submitHref(now = Date.now()): string {
-  return isSubmissionOpen(now)
-    ? "/dashboard/submissions/new"
-    : "/call-for-papers";
+  return isSubmissionOpen(now) ? "/dashboard/submissions/new" : "/submission";
 }

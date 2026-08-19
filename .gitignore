@@ -37,3 +37,7 @@ yarn-error.log*
 dist/
 
 .idea
+
+# Client-facing screenshot/design reports generated at the repo root. Tens of MB
+# of JPEG each, regenerated rather than edited, and of no use to a build.
+/*.pdf

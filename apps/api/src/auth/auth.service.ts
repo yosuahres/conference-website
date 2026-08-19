@@ -146,7 +146,7 @@ export class AuthService {
   }
 
   async loginWithProvider(
-    profile: { email: string; name: string },
+    profile: { email: string; name: string; emailVerified: boolean },
     response: ExpressResponse,
   ) {
     const user = await this.usersService.findOrCreateOAuthUser(profile);

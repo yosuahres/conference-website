@@ -16,10 +16,21 @@ function JsonLd({ data }: { data: unknown }) {
   return (
     <script
       type="application/ld+json"
-      // Values come from our own content module, never from user input.
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(data) }}
+      // Values come from our own content module today, but JSON.stringify does
+      // not escape `<`, so a literal `</script>` in any future speaker bio or
+      // track title would close the block early and turn the remainder into
+      // live markup. Escaping the three characters that can break out costs
+      // nothing and removes the footgun.
+      dangerouslySetInnerHTML={{ __html: toJsonLd(data) }}
     />
   );
+}
+
+function toJsonLd(data: unknown) {
+  return JSON.stringify(data)
+    .replace(/</g, "\\u003c")
+    .replace(/>/g, "\\u003e")
+    .replace(/&/g, "\\u0026");
 }
 
 /**
@@ -32,10 +43,10 @@ export function EventJsonLd() {
     name: venue.name,
     address: {
       "@type": "PostalAddress",
-      streetAddress: venue.addressLines[0],
+      streetAddress: venue.street,
       addressLocality: event.city,
       addressRegion: event.region,
-      postalCode: "27216",
+      postalCode: venue.postalCode,
       addressCountry: "ID",
     },
     geo: {

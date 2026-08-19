@@ -1,34 +1,34 @@
 import { tracks } from "@/content/site";
+import { Reveal } from "../reveal";
 import { Container, Section } from "../ui";
 
 export function Tracks() {
   return (
     <Section id="tracks" className="!bg-mist">
       <Container>
-        <h2 className="text-center font-display text-[clamp(1.75rem,4vw,2.6rem)] font-semibold leading-[1.1] tracking-[-0.03em]">
-          Seminar Topics
-        </h2>
-        <div className="rule mx-auto mt-7 w-40" />
+        <Reveal>
+          <h2 className="text-center font-display text-[clamp(1.75rem,4vw,2.6rem)] font-semibold leading-[1.1] tracking-[-0.03em]">
+            Seminar Topics
+          </h2>
+          <div className="rule mx-auto mt-4 w-40" />
+        </Reveal>
 
-        <ul className="mx-auto mt-16 grid max-w-5xl justify-center gap-x-14 gap-y-10 md:auto-cols-max md:grid-flow-col md:grid-rows-4">
-          {tracks.map((track) => (
-            <li key={track.n} className="flex items-start gap-7">
-              <span
-                aria-hidden
-                className="flex size-14 shrink-0 items-center justify-center rounded-full bg-beam font-display text-[1.6rem] font-bold text-paper"
-              >
-                {Number(track.n)}
+        <ul className="mx-auto mt-14 grid justify-center gap-x-10 gap-y-0 xl:auto-cols-max xl:grid-flow-col xl:grid-rows-4">
+          {tracks.map((track, i) => (
+            <Reveal
+              key={track.n}
+              as="li"
+              delay={60 * i}
+              className="flex items-start gap-3.5"
+            >
+              <span aria-hidden className="pt-[0.62em] text-navy">
+                <span className="block size-[7px] rounded-full bg-current" />
               </span>
 
-              <div className="max-w-sm">
-                <h3 className="text-[1.15rem] font-semibold leading-[1.5]">
-                  {track.title}
-                </h3>
-                <p className="mt-1.5 text-[0.95rem] leading-[1.65] text-subtle">
-                  {track.desc}
-                </p>
-              </div>
-            </li>
+              <h3 className="text-[1.15rem] font-semibold leading-[1.45] xl:whitespace-nowrap xl:text-[1.35rem]">
+                {track.title}
+              </h3>
+            </Reveal>
           ))}
         </ul>
       </Container>

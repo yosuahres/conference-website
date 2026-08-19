@@ -1,15 +1,22 @@
 import { about } from "@/content/site";
+import { Reveal } from "../reveal";
 import { Container, Section } from "../ui";
 
 export function About() {
   return (
     <Section id="about" className="!py-14 md:!py-20">
       <Container>
-        <h2 className="text-balance text-center font-display text-[clamp(1.9rem,4.2vw,2.9rem)] font-semibold leading-[1.15] tracking-[-0.03em]">
+        <Reveal
+          as="h2"
+          className="text-balance text-center font-display text-[clamp(1.9rem,4.2vw,2.9rem)] font-semibold leading-[1.15] tracking-[-0.03em]"
+        >
           {about.heading}
-        </h2>
+        </Reveal>
 
-        <div className="mt-8 space-y-5 text-[1.02rem] leading-[1.85] text-subtle [hyphens:auto] md:text-justify">
+        <Reveal
+          delay={120}
+          className="mt-8 space-y-5 text-[1.02rem] leading-[1.85] text-subtle [hyphens:auto] md:text-justify"
+        >
           {about.paragraphs.map((parts, i) => (
             <p key={i}>
               {parts.map((part, j) =>
@@ -23,7 +30,7 @@ export function About() {
               )}
             </p>
           ))}
-        </div>
+        </Reveal>
       </Container>
     </Section>
   );

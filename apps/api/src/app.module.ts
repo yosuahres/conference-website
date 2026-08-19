@@ -1,9 +1,13 @@
 import { Module } from '@nestjs/common';
+import { APP_GUARD } from '@nestjs/core';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ScheduleModule } from '@nestjs/schedule';
+import { ThrottlerModule } from '@nestjs/throttler';
 import { LoggerModule } from 'nestjs-pino';
 
 import { AuthModule } from './auth/auth.module';
+import { THROTTLER_CONFIG } from './common/throttling/throttler.config';
+import { ThrottlerBehindProxyGuard } from './common/throttling/throttler-behind-proxy.guard';
 import { ConferenceModule } from './conference/conference.module';
 import { DatabaseModule } from './database/database.module';
 import { EmailModule } from './email/email.module';
@@ -50,6 +54,7 @@ import { UsersModule } from './users/users.module';
       inject: [ConfigService],
     }),
     ScheduleModule.forRoot(),
+    ThrottlerModule.forRoot(THROTTLER_CONFIG),
 
     DatabaseModule,
     EmailModule,
@@ -63,5 +68,8 @@ import { UsersModule } from './users/users.module';
     RegistrationsModule,
   ],
   controllers: [HealthController],
+  // Global, so a new controller is rate limited the day it is written rather
+  // than the day someone remembers to decorate it.
+  providers: [{ provide: APP_GUARD, useClass: ThrottlerBehindProxyGuard }],
 })
 export class AppModule {}

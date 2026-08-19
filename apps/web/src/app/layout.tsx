@@ -4,7 +4,13 @@ import { NuqsAdapter } from "nuqs/adapters/next/app";
 import { Toaster } from "sonner";
 
 import { event, tracks } from "@/content/site";
-import { siteDescription, siteName, siteTitle, siteUrl } from "@/lib/seo";
+import {
+  siteDescription,
+  siteName,
+  siteSocialTitle,
+  siteTitle,
+  siteUrl,
+} from "@/lib/seo";
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
@@ -41,13 +47,13 @@ export const metadata: Metadata = {
     type: "website",
     siteName,
     locale: "en_US",
-    title: siteTitle,
+    title: siteSocialTitle,
     description: siteDescription,
     url: "/",
   },
   twitter: {
     card: "summary_large_image",
-    title: siteTitle,
+    title: siteSocialTitle,
     description: siteDescription,
   },
   robots: {

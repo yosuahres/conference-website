@@ -11,7 +11,7 @@ export const metadata = pageMetadata({
 
 export default function ImportantDatesPage() {
   return (
-    <div className="surface-light flex-1">
+    <div className="surface-light flex-1 bg-mist">
       <Container className="py-16 md:py-20">
         {/* No page header; just the heading, then the dates. */}
         <ImportantDates />

@@ -14,6 +14,7 @@ export type IconName =
   | "sparkle"
   | "arrow"
   | "caret"
+  | "chevron"
   | "download"
   | "check"
   | "menu"
@@ -98,6 +99,7 @@ const paths: Record<IconName, React.ReactNode> = {
   ),
   arrow: <path d="M4 12h15m-6-6 6 6-6 6" />,
   caret: <path d="M7 10h10l-5 6z" fill="currentColor" stroke="none" />,
+  chevron: <path d="m6 9.5 6 6 6-6" />,
   download: (
     <>
       <path d="M12 3.5v11m0 0 4-4m-4 4-4-4" />

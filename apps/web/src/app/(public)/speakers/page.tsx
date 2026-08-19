@@ -42,7 +42,7 @@ export default function SpeakersPage() {
                       alt={speaker.name ?? ""}
                       fill
                       sizes="240px"
-                      className="object-cover"
+                      className="object-cover object-top"
                     />
                   </div>
 

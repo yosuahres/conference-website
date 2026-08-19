@@ -136,7 +136,10 @@ export class SubmissionsController {
 
   @Get('files/:fileId/download')
   @Roles('reviewer', 'admin')
-  download(@Param('fileId', ParseIntPipe) fileId: number) {
-    return this.submissionsService.getFileDownloadUrl(fileId);
+  download(
+    @CurrentUser() user: User,
+    @Param('fileId', ParseIntPipe) fileId: number,
+  ) {
+    return this.submissionsService.getFileDownloadUrl(user, fileId);
   }
 }

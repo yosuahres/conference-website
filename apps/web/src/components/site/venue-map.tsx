@@ -29,7 +29,7 @@ export function VenueMap() {
 
         <div className="mt-7 flex flex-col gap-3 sm:flex-row lg:flex-col xl:flex-row">
           <a
-            href={`https://www.google.com/maps/search/?api=1&query=${query}`}
+            href={`https://www.google.com/maps/search/?api=1&query=${query}&query_place_id=${venue.placeId}`}
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center justify-center gap-2 rounded-full bg-ink px-5 py-3 text-[0.85rem] font-medium text-paper transition-colors hover:bg-navy"
@@ -38,7 +38,7 @@ export function VenueMap() {
             <Icon name="external" className="size-[15px]" />
           </a>
           <a
-            href={`https://www.google.com/maps/dir/?api=1&destination=${query}`}
+            href={`https://www.google.com/maps/dir/?api=1&destination=${query}&destination_place_id=${venue.placeId}`}
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center justify-center gap-2 rounded-full border border-line px-5 py-3 text-[0.85rem] font-medium transition-colors hover:border-ink"

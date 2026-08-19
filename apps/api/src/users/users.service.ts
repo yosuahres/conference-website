@@ -3,6 +3,7 @@ import {
   Inject,
   Injectable,
   NotFoundException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { hash } from 'bcryptjs';
 import { asc, eq } from 'drizzle-orm';
@@ -46,12 +47,35 @@ export class UsersService {
     return created;
   }
 
+  /**
+   * Matching on email alone is how OAuth account takeover happens: register a
+   * provider account carrying someone else's address, sign in, and the provider
+   * hands you their account. GitHub in particular will return an address the
+   * user has not proven they own. So we only ever link when the provider states
+   * the address is verified, and even then we refuse to attach to an account
+   * that holds a password -- that one is claimed by whoever set the password.
+   */
   async findOrCreateOAuthUser(data: {
     email: string;
     name: string;
+    emailVerified: boolean;
   }): Promise<User> {
+    if (!data.emailVerified) {
+      throw new UnauthorizedException(
+        'Your provider has not verified this email address. Verify it there, or sign in with a password.',
+      );
+    }
+
     const existing = await this.findByEmail(data.email);
-    if (existing) return existing;
+
+    if (existing) {
+      if (existing.password) {
+        throw new ConflictException(
+          'An account with that email already exists. Sign in with your password instead.',
+        );
+      }
+      return existing;
+    }
 
     const [created] = await this.database
       .insert(users)

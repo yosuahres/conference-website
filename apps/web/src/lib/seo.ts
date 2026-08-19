@@ -13,7 +13,11 @@ export const siteUrl = (process.env.NEXT_PUBLIC_APP_URL || event.website)
 
 export const siteName = `${event.shortName} ${event.edition}`;
 
-export const siteTitle = `${siteName} · ${event.fullName}`;
+/** Browser tab and homepage title: the short name on its own. */
+export const siteTitle = siteName;
+
+/** Social cards have room for the expansion the tab title leaves out. */
+export const siteSocialTitle = `${siteName} · ${event.fullName}`;
 
 export const siteDescription = `The 6th ${event.fullName} (${siteName}): ${event.theme}. ${event.dates} at ${event.venue}, ${event.region}, ${event.country}.`;
 

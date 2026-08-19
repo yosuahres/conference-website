@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Get,
@@ -46,7 +47,7 @@ export class UsersController {
     @Body() dto: SetRoleDto,
   ) {
     if (actor.id === id && dto.role !== 'admin') {
-      throw new Error('You cannot remove your own admin role.');
+      throw new BadRequestException('You cannot remove your own admin role.');
     }
     return this.usersService.setRole(id, dto.role);
   }

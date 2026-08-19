@@ -19,6 +19,8 @@ export const event = {
 
 export const brand = {
   logo: "/brand/logo-circle.jpeg",
+  logoWidth: 1600,
+  logoHeight: 1600,
   logoMain: "/brand/logo-main.png",
   logoMainWidth: 6249,
   logoMainHeight: 2640,
@@ -87,14 +89,14 @@ export const nav = [
       { label: "Speakers", href: "/speakers" },
     ],
   },
-  { label: "Submission", href: "/call-for-papers" },
-] as const;
-
-export const mobileNav = [
-  { label: "Home", href: "/" },
-  { label: "Speakers", href: "/speakers" },
-  { label: "Topics", href: "/call-for-papers" },
-  { label: "Dates", href: "/important-dates" },
+  {
+    // No href; this one only opens its dropdown.
+    label: "Authors",
+    children: [
+      { label: "Call for Papers", href: "/call-for-papers" },
+      { label: "Submission", href: "/submission" },
+    ],
+  },
 ] as const;
 
 type Para = readonly (string | { readonly em: string })[];
@@ -193,7 +195,7 @@ export const speakers = [
     slug: "ganapathy",
     name: "Prof. Senthil Murugan Ganapathy",
     role: "Keynote",
-    institution: "University of Southampton, UK",
+    institution: "University Southampton, UK",
     topic: null,
     photo: "/speakers/keynotes/Picture3.png",
     bio: [
@@ -230,7 +232,7 @@ export const speakers = [
     slug: "chaompluk",
     name: "Assoc. Prof. Dr. Piyasak Chaumpluk",
     role: "Keynote",
-    institution: "Chulalongkorn University, Thailand",
+    institution: "UniversityChulalongkorn, Thailand",
     topic: null,
     photo: "/speakers/keynotes/Picture6.png",
     bio: [
@@ -240,6 +242,19 @@ export const speakers = [
       "For his outstanding contributions to science and innovation, he has received several prestigious international honors, including the United Kingdom Leadership Award (Knight Level) in 2019 and the Brussels Eureka Innova Award (Chevalier Level) in 2016.",
     ] as readonly string[],
   },
+  {
+    slug: "anto-satriyo-nugroho",
+    name: "Prof. Dr. Eng. Anto Satriyo Nugroho",
+    role: "Keynote",
+    institution: "AI&C RC BRIN, Indonesia",
+    topic: null,
+    photo: "/speakers/keynotes/Picture13.jpg",
+    bio: [
+      "Prof. Dr. Eng. Anto Satriyo Nugroho is a Research Professor in Artificial Intelligence and currently is the Head of Research Center for Artificial Intelligence and Cyber Security of the National Research and Innovation Agency (BRIN).",
+      "He got his B.Eng (1995), M.Eng. (2000), and Dr.Eng. (2003) in Electrical and Computer Engineering, all were from the Nagoya Institute of Technology. His research interests are devoted to biometrics, pattern recognition, and image processing.",
+      "He has authored 84 Scopus-indexed papers, with a current h-index of 12. His Scopus ID is 6701506291 and his ORCID ID is 0000-0002-5457-8786.",
+    ] as readonly string[],
+  },
 ] as const;
 
 export const invitedSpeakers = [
@@ -247,9 +262,9 @@ export const invitedSpeakers = [
     slug: "retna-apsari",
     name: "Prof. Dr. Retna Apsari, M.Si.",
     role: "Invited",
-    institution: "Universitas Airlangga, Indonesia",
+    institution: "Universitas of Airlangga, Indonesia",
     topic: null,
-    photo: "/speakers/invited/Picture7.png",
+    photo: "/speakers/invited/Picture7.jpg",
     bio: [
       "Prof. Retna Apsari graduated in Physics (1991) from Brawijaya University, earned her Master in Physics from Gajah Mada University in 1998, and her Ph.D. in Physics (Laser Biooptics) from the University of Airlangga in 2009. She has authored 127 international papers with a current Scopus h-index of 18, and holds several patents related to diabetes detection systems.",
       "Prof. Retna Apsari is currently appointed as the Dean of the Faculty of Advanced Technology and Multidisciplinary.",
@@ -259,9 +274,9 @@ export const invitedSpeakers = [
     slug: "hery-suyanto",
     name: "Prof. Dr. Hery Suyanto",
     role: "Invited",
-    institution: "Udayana University, Indonesia",
+    institution: "University of Udayana, Indonesia",
     topic: null,
-    photo: "/speakers/invited/Picture8.png",
+    photo: "/speakers/invited/Picture8.jpg",
     bio: [
       "Hery Suyanto graduated in Physics from the Institut Teknologi Sepuluh Nopember Surabaya (ITS) in 1988, and earned his Master and Ph.D. (2003) in Optoelectronics from the Faculty of Optoelectronics and Laser Application, the University of Indonesia, Jakarta, Indonesia. In 2019, he was appointed Professor of Optoelectronics and Laser Application at Udayana University.",
       "He has carried out many collaborative research works, mostly at the Maju Makmur Mandiri Research Centre (MMM) in Jakarta, related to numerous applications of LIBS. His research interest focuses on LIBS applications on biomaterial samples such as nail, hair and teeth for biomarkers and pedigree analysis in his laboratory. These works have been published in more than 40 articles in international journals, and some of them are also being proposed as patents.",
@@ -273,23 +288,11 @@ export const invitedSpeakers = [
     role: "Invited",
     institution: "Research Center for Photonics, BRIN, Indonesia",
     topic: null,
-    photo: "/speakers/invited/Picture9.png",
+    photo: "/speakers/invited/Picture9.jpg",
     bio: [
       "Prof. Isnaeni is a Research Professor in Optics (since 2024) at the National Research and Innovation Agency (BRIN), Indonesia. He graduated in Physics from IPB University, earned his Master's degree in Physics from the University of Queensland in 2006, and his Ph.D. in Physics from the Korea Advanced Institute of Science and Technology, South Korea (2012).",
       "His research interests are in quantum dots, graphene dots and plasmonic nanoparticles, laser spectroscopy, nonlinear optics, metamaterials, and nano-bio-photonics.",
       "He has authored more than 150 international publications during 2010–2026, and currently he is the Head of the Research Center for Photonics of the National Research and Innovation Agency (BRIN).",
-    ] as readonly string[],
-  },
-  {
-    slug: "agus-pratondo",
-    name: "Prof. Ir. Agus Pratondo, S.T., M.T., Ph.D.",
-    role: "Invited",
-    institution: "Telkom University, Indonesia",
-    topic: null,
-    photo: "/speakers/invited/Picture10.png",
-    bio: [
-      "Agus Pratondo graduated in Informatics Engineering in 2001 and earned his Master in Electrical Engineering in 2008, both from the Bandung Institute of Technology. He then pursued his Ph.D. study at the School of Electrical and Computer Engineering, National University of Singapore, receiving his Ph.D. degree in 2016.",
-      "Since 2024 he is a Professor in Applied Machine Learning at Telkom University, and in the same year he was listed among the World's Top 2% of Scientists in the field of artificial intelligence by Stanford University and Elsevier BV for his scientific contributions.",
     ] as readonly string[],
   },
   {
@@ -298,7 +301,7 @@ export const invitedSpeakers = [
     role: "Invited",
     institution: "Co-Founder and CEO, Nicslab",
     topic: null,
-    photo: "/speakers/invited/Picture11.png",
+    photo: "/speakers/invited/Picture11.jpg",
     bio: [
       "Andri Mahendra is the Co-Founder and CEO of Nicslab, a deep-tech company developing advanced test and measurement solutions for photonic integrated circuits, semiconductors, and emerging computing technologies. He holds a Ph.D. from the University of Sydney, with a research background in electronics, photonics instrumentation, and control systems. Under his leadership, Nicslab has developed high-density multichannel source-measure and photonic testing technologies used by leading research institutions, semiconductor companies, and government laboratories worldwide.",
       "Andri is actively involved in advancing the semiconductor and photonics ecosystem through technology development, intellectual property, industry collaboration, and international partnerships. He has also contributed to discussions and initiatives focused on strengthening Indonesia's semiconductor and deep-tech ecosystem.",
@@ -310,11 +313,23 @@ export const invitedSpeakers = [
     role: "Invited",
     institution: "Institut Teknologi Sepuluh Nopember, Indonesia",
     topic: null,
-    photo: "/speakers/invited/Picture12.png",
+    photo: "/speakers/invited/Picture12.jpg",
     bio: [
       "His academic and research expertise centers on advanced functional materials, particularly for energy, environmental, and sensing applications. He leads the ENABLE research group working with the Advanced Functional Materials Laboratory (AFML), which recently became a research-based spin-off company from ITS. ENABLE focuses on innovation in sensor and biosensor technology, smart and functional materials, and sustainable energy systems.",
       "He is an Assistant Professor in the Department of Engineering Physics at Institut Teknologi Sepuluh Nopember (ITS), with an h-index of 17 and 84 Scopus-indexed publications. He currently serves as the Chair of the Graduate Program in Innovation of System and Technology at the School of Interdisciplinary Management and Technology, ITS.",
       "Beyond his academic and industrial roles, he is passionate about community development, particularly in integrating renewable energy systems into smart farming and supporting sustainable production processes for small and medium enterprises. Through these efforts, he actively contributes to bridging research, technology innovation, and real-world societal impact, and was recently awarded an encouragement award by the Hitachi Global Foundation Asia.",
+    ] as readonly string[],
+  },
+  {
+    slug: "yulkifli",
+    name: "Prof. Dr. Yulkifli, S.Pd., M.Si.",
+    role: "Invited",
+    institution: "Padang State University, Indonesia",
+    topic: null,
+    photo: "/speakers/invited/Picture10.jpg",
+    bio: [
+      "Prof. Yulkifli graduated in Physics Education from IKIP Padang, and earned his Master (2002) and Ph.D. (2010) in Physics from the Bandung Institute of Technology. His fields of expertise are in sensors and sensor systems, physics of instrumentation, and physics education.",
+      "He has published numerous international research papers in his fields of expertise, with 83 Scopus-indexed papers and an h-index of 9 (Scopus) and 16 (Google Scholar). His Scopus ID is 36005049600 and his ORCID ID is 0000-0002-0909-6227.",
     ] as readonly string[],
   },
 ] as const;
@@ -631,19 +646,26 @@ export const hostCity = {
 export const venue = {
   eyebrow: "Venue",
   name: event.venue,
-  campus: "Campus 1",
   addressLines: [
-    "Jl. Jenderal Sudirman No. 137",
-    "Nagari Lima Kaum, Kec. Lima Kaum",
-    "Batusangkar, Kab. Tanah Datar",
-    "Sumatera Barat 27216, Indonesia",
+    "Gedung Kuliah Terpadu (GKT), Kampus 2",
+    "Jl. Raya Batusangkar - Padang Panjang KM. 7",
+    "Nagari Parambahan, Kec. Lima Kaum",
+    "Kab. Tanah Datar, Sumatera Barat 27264",
+    "Indonesia",
   ],
+  // Kept apart from addressLines, which is display copy: schema.org wants the
+  // street on its own and the postcode in its own field.
+  street: "Jl. Raya Batusangkar - Padang Panjang KM. 7, Parambahan",
+  postalCode: "27264",
   mapQuery:
-    "UIN Mahmud Yunus Batusangkar, Jl. Jenderal Sudirman No. 137, Lima Kaum, Batusangkar",
-  coords: { lat: -0.4633691, lng: 100.5549665 },
-  travel: [
-    "The nearest airport is Minangkabau International Airport (PDG) in Padang, about three hours away by road.",
-  ],
+    "Gedung Kuliah Terpadu UIN MY Batusangkar, Jl. Raya Padang Panjang-Batusangkar, Parambahan, Kec. Lima Kaum, Kabupaten Tanah Datar",
+  // The embed is driven by coords, not by mapQuery. A text query only pins when
+  // Google matches exactly one place, and the university name alone matches two
+  // (Campus 1 on Jl. Jenderal Sudirman and this one), which silently drops the
+  // embed into multi-result mode with no marker at all. Coordinates always pin.
+  // placeId does the same job for the outbound links, which do take text.
+  coords: { lat: -0.4635357, lng: 100.5355763 },
+  placeId: "ChIJ-1M6EwAt1S8R0cR80CrsL0E",
 } as const;
 
 export const gallery = {

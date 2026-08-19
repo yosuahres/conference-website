@@ -260,3 +260,31 @@
     @apply font-medium underline underline-offset-4;
   }
 }
+
+@layer components {
+  /* Scroll reveal. Elements start hidden and are unhidden by the Reveal
+     component once they enter the viewport; the fallbacks below keep the
+     content readable when JS is off or motion is reduced. */
+  .reveal {
+    opacity: 0;
+    transform: translateY(16px);
+    transition:
+      opacity 700ms cubic-bezier(0.22, 1, 0.36, 1),
+      transform 700ms cubic-bezier(0.22, 1, 0.36, 1);
+    transition-delay: var(--reveal-delay, 0ms);
+    will-change: opacity, transform;
+  }
+
+  .reveal.is-visible {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}

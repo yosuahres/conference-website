@@ -9,12 +9,14 @@ import {
   Res,
   UseGuards,
 } from '@nestjs/common';
+import { Throttle } from '@nestjs/throttler';
 import type { Response as ExpressResponse } from 'express';
 
 import { CurrentUser } from '../auth/current-user.decorator';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { Roles } from '../common/authorization/roles.decorator';
 import { RolesGuard } from '../common/authorization/roles.guard';
+import { PAYMENT_THROTTLE } from '../common/throttling/throttler.config';
 import type { User } from '../database/schemas/users';
 import { CreateRegistrationDto } from './dto/registration.dto';
 import { RegistrationsService } from './registrations.service';
@@ -35,6 +37,7 @@ export class RegistrationsController {
   }
 
   @Post()
+  @Throttle(PAYMENT_THROTTLE)
   @UseGuards(JwtAuthGuard)
   create(@CurrentUser() user: User, @Body() dto: CreateRegistrationDto) {
     return this.registrationsService.create(user, dto);
@@ -75,6 +78,7 @@ export class RegistrationsController {
   }
 
   @Post(':id/pay')
+  @Throttle(PAYMENT_THROTTLE)
   @UseGuards(JwtAuthGuard)
   retryPayment(
     @CurrentUser() user: User,
