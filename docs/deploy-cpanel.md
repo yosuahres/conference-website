@@ -1,5 +1,10 @@
 # Deploying to Domainesia cPanel
 
+> **This page assumes the plan can run Node.js.** The **Nimbus One** plan cannot;
+> Node starts at Nimbus Go. Until the plan is upgraded, the public site ships as
+> plain files instead, see [deploy-static-cpanel.md](./deploy-static-cpanel.md).
+> Everything below is written and tested and waiting for that upgrade.
+
 GitHub Actions builds, cPanel only copies. That split exists because `next build`
 peaks well above the 1-2GB a shared plan gives you, so building on the server
 gets the process killed partway through with no useful error.
