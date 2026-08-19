@@ -15,15 +15,26 @@
 
 DirectoryIndex index.html
 
+# public/speakers/ holds the speaker photographs, so /speakers is BOTH a page
+# and a real directory. Without this, mod_autoindex answers /speakers/ with a
+# listing of that directory: the page is unreachable and the file tree is
+# published. Nothing here should ever be browsable.
+Options -Indexes
+
 <IfModule mod_rewrite.c>
   RewriteEngine On
 
-  # Never rewrite something that really exists.
-  RewriteCond %{REQUEST_FILENAME} -f [OR]
-  RewriteCond %{REQUEST_FILENAME} -d
+  # A request for a file that exists is always that file. This covers every
+  # asset, including the photographs under /speakers/.
+  RewriteCond %{REQUEST_FILENAME} -f
   RewriteRule ^ - [L]
 
   # /submission -> /submission.html, and /submission/ likewise.
+  #
+  # Deliberately NOT skipped when the path is a directory. /speakers is both a
+  # page and a directory of photographs, and the page has to win. Testing for
+  # the .html here also has to happen before mod_dir gets the request, or it
+  # appends a slash and redirects to the directory before this rule is reached.
   RewriteCond %{DOCUMENT_ROOT}/$1.html -f
   RewriteRule ^(.+?)/?$ /$1.html [L]
 </IfModule>
