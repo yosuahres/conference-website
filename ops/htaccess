@@ -3,7 +3,16 @@
 # /submission/index.html, so Apache has to be told to serve the former when the
 # latter is asked for. MultiViews would also do it, but it guesses by content
 # negotiation; this is explicit.
-Options -MultiViews
+# MultiViews would let Apache pick between submission.html and submission.txt
+# for a request to /submission, and the .txt is the React payload, not a page.
+# The IfModule guard is not decoration: if the host does not allow `Options` in
+# .htaccess the directive is a 500 for the whole site, and this at least skips
+# it where mod_negotiation is absent. If you see a 500 the moment you extract,
+# comment the next three lines out first.
+<IfModule mod_negotiation.c>
+  Options -MultiViews
+</IfModule>
+
 DirectoryIndex index.html
 
 <IfModule mod_rewrite.c>
