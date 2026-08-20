@@ -9,21 +9,28 @@ export const metadata = pageMetadata({
 });
 
 /**
- * The horizontal accent rule that marks the start of a section, sitting to the
- * left of the heading. Fixed lengths rather than `em`, so the two levels stay
- * visibly different from each other rather than each tracking its own text.
+ * The horizontal accent rule marking the start of a section.
+ *
+ * From `md` it is taken out of flow and hung in the container's left padding,
+ * so the heading itself starts on the same left edge as the lists beneath it
+ * rather than being pushed in by the width of its own marker. Below `md` it
+ * stays inline: Container drops to `px-6`, and 24px is not enough room to park
+ * a rule in without it running off the side of the screen.
  */
 function Marker({ tone = "strong" }: { tone?: "strong" | "soft" }) {
   // Whole class strings per tone rather than overrides appended to a base:
   // `bg-beam` and `bg-beam/55` in one attribute would leave the winner up to
   // the order Tailwind happened to emit them in.
+  const hang =
+    "md:absolute md:right-full md:top-1/2 md:mr-3 md:-translate-y-1/2";
+
   return (
     <span
       aria-hidden
       className={
         tone === "strong"
-          ? "h-[4px] w-[2rem] shrink-0 bg-beam"
-          : "h-[3px] w-[1.35rem] shrink-0 bg-beam/55"
+          ? `h-[6px] w-[1.5rem] shrink-0 bg-beam ${hang}`
+          : `h-[5px] w-[1.1rem] shrink-0 bg-beam/55 ${hang}`
       }
     />
   );
@@ -31,7 +38,7 @@ function Marker({ tone = "strong" }: { tone?: "strong" | "soft" }) {
 
 function Label({ children }: { children: React.ReactNode }) {
   return (
-    <h2 className="flex items-center gap-2.5 font-display text-[1.2rem] font-semibold tracking-[-0.02em]">
+    <h2 className="relative flex items-center gap-3 font-display text-[1.2rem] font-semibold tracking-[-0.02em]">
       <Marker />
       {children}
     </h2>
@@ -142,7 +149,7 @@ export default function CommitteePage() {
               {/* A step down from Label: the bar is narrower and dimmer so the
                   working groups still read as sitting under the committees
                   above them, not alongside them. */}
-              <h3 className="flex items-center gap-2.5 font-display text-[1.05rem] font-semibold tracking-[-0.02em]">
+              <h3 className="relative flex items-center gap-3 font-display text-[1.05rem] font-semibold tracking-[-0.02em]">
                 <Marker tone="soft" />
                 {group.heading}
               </h3>
