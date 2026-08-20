@@ -97,6 +97,7 @@ export const nav = [
       { label: "Submission", href: "/submission" },
     ],
   },
+  { label: "Committee", href: "/committee" },
 ] as const;
 
 type Para = readonly (string | { readonly em: string })[];
@@ -680,6 +681,164 @@ export const gallery = {
     {
       title: "Networking & Collaboration",
       sub: "Cross-institutional discussion",
+    },
+  ],
+} as const;
+
+/**
+ * Transcribed from the committee list supplied by the secretariat. Names are
+ * reproduced as given apart from obvious typos; where a working group was
+ * listed without a chair, it stays without one rather than promoting someone.
+ */
+export const committee = {
+  patronage: {
+    heading: "Patronage",
+    entries: [
+      "Rector UIN Mahmud Yunus Batusangkar, Tanah Datar, West Sumatera",
+      "Rector University of Andalas, Padang, West Sumatera",
+      "Rector Institut Teknologi Sepuluh Nopember, Surabaya, Indonesia",
+      "Rector University of Airlangga, Surabaya, Indonesia",
+      "Rector National University, Jakarta, Indonesia",
+    ],
+  },
+
+  boards: [
+    {
+      heading: "Advisory Committee",
+      chair: "Prof. Agus Muhamad Hatta, S.T., M.Si., Ph.D. (Indonesia)",
+      members: [
+        "Prof. Delmus Puneri Salim, M.Res., Ph.D. (Indonesia)",
+        "Prof. Dr. Mai Efdi, M.Si. (Indonesia)",
+        "Prof. Erning Wihardjo (Indonesia)",
+        "Dr. Sarun Sumriddetchkajorn (Thailand)",
+        "Prof. Senthil Murugan Ganapathy (UK)",
+        "Prof. Sulaiman Wadi Harun (Malaysia)",
+        "Prof. Sar Sardy (Indonesia)",
+        "Prof. Harith Ahmad (Malaysia)",
+        "Prof. Parvez Haris (UK)",
+        "Prof. Suganda Jutamulia (USA)",
+        "Prof. Azzedine Boudrioua (France)",
+        "Prof. Joewono Widjaja (Thailand)",
+        "Prof. Percival F. Almoro (Philippines)",
+      ],
+    },
+    {
+      heading: "Technical Program Committee",
+      chair: "Dr.rer.nat. Aulia M. T. Nasution (ITS, Indonesia)",
+      members: [
+        "Prof. Dr. Yulkifli, M.Si. (UNP, Indonesia)",
+        "Prof. Dr. Retna Apsari, M.Si. (UNAIR, Indonesia)",
+        "Prof. Deddy Kurniadi (Institut Teknologi Bandung - ITB)",
+        "Prof. Dr. Alexander A.P. Iskandar (Bandung Institute of Technology - ITB)",
+        "Prof. Dr. Henri Putra Uranus (University of Pelita Harapan - UPH)",
+        "Prof. Dr. Hery Suyanto (University of Udayana - UNUD)",
+        "Prof. Dr. Isnaeni (National Research and Innovation Agency)",
+        "Prof. Dr. Retno Wigajatri (University of Indonesia - UI)",
+        "Prof. Dr. Suprijanto (Bandung Institute of Technology - ITB)",
+        "Prof. Dr. Husin Alatas (IPB University)",
+        "Prof. Dr. Hendradi Hardhienata (IPB University)",
+        "Prof. Suryani Dyah Astuti (University of Airlangga - UNAIR)",
+        "Prof. Dr. Purnomo Sidi Priambodo (University of Indonesia - UI)",
+        "Prof. Dr. P. L. Gareso (Universitas Hasanuddin - UNHAS)",
+        "Prof. Dr. Manish Tiwari (Manipal University, Jaipur, India)",
+        "Prof. Dr. Pengfei Wang (Shanghai Jiao Tong University, China)",
+        "Prof. Dr. Yusuf Nur Wijayanto (National Research and Innovation Agency)",
+        "Assoc. Prof. Dr. Mohd Zamani Zulkifli (International Islamic University Malaysia)",
+        "Assoc. Prof. Ahmad Fairuz Omar (University of Science Malaysia)",
+        "Dr. RongPing Wang (Australian National University)",
+        "Dr. Eng. Suryadi Soekardjo (BINUS University)",
+        "Dr. Ginu Rajan (Cardiff Metropolitan University)",
+        "Dr. Sunish Mathews (University College London)",
+        "Dr. Qian Wang (Data Storage Institute, Singapore)",
+        "Dr. Ing. Rajesh Kanawade (NCL CSIR, Pune - India)",
+        "Dr. Koo Hendrik Kurniawan (Maju Makmur Mandiri Research Center)",
+        "Dr. M Danang Birowosuto (University of Prasetya Mulya)",
+        "Dr. Maria M. Suliyanti (National Research and Innovation Agency)",
+        "Dr. Affi Nur Hidayah (National Research and Innovation Agency)",
+        "Dr. Tatas H.P. Brotosudarmo (University of Ciputra)",
+        "Dr. G.O.F. Parikesit (University of Gadjah Mada - UGM)",
+        "Dr. Eric Jobiliong (University of Pelita Harapan - UPH)",
+      ],
+    },
+  ],
+
+  organizing: {
+    heading: "Organizing Committee",
+    roles: [
+      { role: "General Chair", name: "Dr. Frans Agustiyanto" },
+      { role: "Co-Chair", name: "Dr.rer.nat. Maulidanur" },
+      { role: "Secretary", name: "Dr. Fitri Rahmah" },
+      { role: "Treasurer", name: "Dr. Detak Yan Pratama" },
+    ],
+  },
+
+  workingGroups: [
+    {
+      heading: "Secretariat",
+      chair: "Dr. Fitri Rahmah, M.T. (UNAS)",
+      members: [
+        "Sri Maiyena, M.Sc., Ph.D (UIN MY Batusangkar)",
+        "Fitria Hidayanti, M.Si (UNAS)",
+      ],
+    },
+    {
+      heading: "Sponsorship",
+      chair: "Dr. Fadli Ama, M.T. (UNAIR)",
+      members: ["Dr. Harmadi (UNAND)", "Dr. Ucuk Darusalam, S.T., M.T. (UNAS)"],
+    },
+    {
+      heading: "Documentation",
+      chair: null,
+      members: ["Aidhya Irhash Putra, M.P., M.Agr. (UIN MY Batusangkar)"],
+    },
+    {
+      heading: "Program",
+      chair: "Dr. Maya Sari, M.Si. (UIN MY Batusangkar)",
+      members: [
+        "Dr. Ramacos Fardela, M.Sc. (UNAND)",
+        "Fidyah Praguna Hayati, S.Si.",
+        "Fariska Nurjanah, S.Pd.",
+        "Nopitasari, S.Pd.",
+        "Bunga",
+      ],
+    },
+    {
+      heading: "Proceeding",
+      chair: "Ardyas Nur Aufa, S.T., M.T. (ITS)",
+      members: [
+        "Hadiyati Idrus, M.Sc. (UIN MY Batusangkar)",
+        "Dr. Astuti, M.Si. (UNAND)",
+        "Rima Zuriah Amdani, M.Sc. (ITS)",
+        "Anto (ITS)",
+      ],
+    },
+    {
+      heading: "Publicity",
+      chair: "Iwan Conny Setiadi, M.T. (ITS)",
+      members: [
+        "Aldo Novaznursyah Costrada, M.Si. (UNAND)",
+        "Raditya Widyadhana (ITS)",
+        "Naufaldi Azka (ITS)",
+        "Muhammad Baihaqi Ikhsan Kurniawan (ITS)",
+      ],
+    },
+    {
+      heading: "Technical",
+      chair: "Venny Haris, M.Si., Ph.D (UIN MY Batusangkar)",
+      members: [
+        "Bushra Hamid, S.Pd. (UIN MY Batusangkar)",
+        "Hauliya Rahmah Z., S.Si. (UIN MY Batusangkar)",
+        "Habibie (UIN MY Batusangkar)",
+        "Rosyid (UIN MY Batusangkar)",
+      ],
+    },
+    {
+      heading: "Transportation",
+      chair: "Aidhya Irhash Putra, M.P., M.Agr. (UIN MY Batusangkar)",
+      members: [
+        "Bushra Hamid, S.Pd. (UIN MY Batusangkar)",
+        "Hauliya Rahmah Z., S.Si. (UIN MY Batusangkar)",
+      ],
     },
   ],
 } as const;

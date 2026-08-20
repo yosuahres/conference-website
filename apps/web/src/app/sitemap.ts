@@ -16,6 +16,7 @@ const ROUTES = [
   { path: "/submission", changeFrequency: "weekly", priority: 0.9 },
   { path: "/important-dates", changeFrequency: "weekly", priority: 0.8 },
   { path: "/speakers", changeFrequency: "monthly", priority: 0.8 },
+  { path: "/committee", changeFrequency: "monthly", priority: 0.7 },
   { path: "/venue", changeFrequency: "monthly", priority: 0.6 },
 ] as const satisfies readonly {
   path: string;
