@@ -704,7 +704,7 @@ export const committee = {
 
   boards: [
     {
-      heading: "Advisory Committee",
+      heading: "Advisory Board",
       chair: "Prof. Agus Muhamad Hatta, S.T., M.Si., Ph.D. (Indonesia)",
       members: [
         "Prof. Delmus Puneri Salim, M.Res., Ph.D. (Indonesia)",
