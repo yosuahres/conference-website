@@ -9,8 +9,9 @@ export const metadata = pageMetadata({
 });
 
 /**
- * The accent bar that marks the start of a section. Sized in `em` so it tracks
- * the heading it sits against rather than needing a value per heading level.
+ * The horizontal accent rule that marks the start of a section, sitting to the
+ * left of the heading. Fixed lengths rather than `em`, so the two levels stay
+ * visibly different from each other rather than each tracking its own text.
  */
 function Marker({ tone = "strong" }: { tone?: "strong" | "soft" }) {
   // Whole class strings per tone rather than overrides appended to a base:
@@ -21,8 +22,8 @@ function Marker({ tone = "strong" }: { tone?: "strong" | "soft" }) {
       aria-hidden
       className={
         tone === "strong"
-          ? "h-[1.7em] w-[4px] shrink-0 bg-beam"
-          : "h-[1.5em] w-[3px] shrink-0 bg-beam/55"
+          ? "h-[4px] w-[2rem] shrink-0 bg-beam"
+          : "h-[3px] w-[1.35rem] shrink-0 bg-beam/55"
       }
     />
   );
