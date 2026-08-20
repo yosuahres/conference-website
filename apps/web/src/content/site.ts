@@ -168,7 +168,7 @@ export const plenarySpeakers = [
     institution:
       "Minister of Higher Education, Science and Technology · Bandung Institute of Technology, Indonesia",
     topic: null,
-    photo: "/photos/speakers/plenary/Picture1.png",
+    photo: "/photos/speakers/plenary/Picture1.jpg",
     bio: [
       "He is a Professor in advanced functional materials, specialized in nanomaterials and biosensors, from the Bandung Institute of Technology. He graduated in 1999 from the Department of Engineering Physics ITB, and earned his M.Sc. (2002) and Ph.D. (2005) in Quantum Engineering and System Science from the University of Tokyo, Japan. His research focuses on the development of nanotechnology-based sensors for detecting hazardous gases, environmental pollutants, and diagnosing diseases like cancer, hepatitis, and dengue fever. He has authored over 326 publications in international journals indexed by Scopus, with an h-index of 43. He received the Habibie Prize in 2024, a recognition as the top researcher in Nanoscience & Nanotechnology in Indonesia in 2023, and was listed among the world's top 2% of scientists in 2024. He was named the best researcher at ITB in 2021 and received the outstanding lecturer award in Science and Technology at ITB in 2017.",
       "Since 2025, he has been appointed as Minister of Higher Education, Science, and Technology. Previously he served as the Vice Rector of Research and Innovation, as the Dean of the Faculty of Industrial Technology, and as the Head of the Engineering Physics Department of the Bandung Institute of Technology.",
@@ -198,7 +198,7 @@ export const speakers = [
     role: "Keynote",
     institution: "University Southampton, UK",
     topic: null,
-    photo: "/photos/speakers/keynotes/Picture3.png",
+    photo: "/photos/speakers/keynotes/Picture3.jpg",
     bio: [
       "Prof. Senthil Murugan Ganapathy received his Ph.D. (Photonic Materials) in 2001 from the Indian Institute of Science, Bangalore. He worked as a post-doctoral fellow from 2001 to 2005 at the University of Bordeaux, France, and the Toyota Technological Institute, Japan. He joined the Optoelectronics Research Centre at the University of Southampton in April 2005, where he is currently a Professor and Head of the Integrated Photonic Devices Group, and Deputy Head of School (ORC) for Education. He is also an Adjunct Professor at the Indian Institute of Technology Madras, Chennai, India.",
       "His expertise and research interests range from photonic materials to photonic systems, with a current focus on Mid-IR/high-contrast materials and devices for biomedical sensing, on-chip spectroscopy, on-chip nanoscopy, environmental monitoring and optical communication applications. He has made pioneering contributions in the field of novel optical micro-resonators.",
@@ -210,7 +210,7 @@ export const speakers = [
     role: "Keynote",
     institution: "NYU Abu Dhabi, UAE",
     topic: null,
-    photo: "/photos/speakers/keynotes/Picture4.png",
+    photo: "/photos/speakers/keynotes/Picture4.jpg",
     bio: [
       "Prof. Azhar Zam is an Associate Professor of Bioengineering. He holds a B.S. from the University of Indonesia, an M.Sc. from the University of Luebeck, Germany, and a Ph.D. from Friedrich-Alexander-University Erlangen-Nuremberg, Germany.",
       "Zam's research interests focus on the development of smart devices for medical imaging, diagnostics, and monitoring using novel optical technologies, which include smart laser surgery, optical coherence tomography (OCT), photoacoustics, biomedical spectroscopy, AI-aided optical diagnostics and imaging, optical-based smart biosensors, and miniaturized systems. He has written over 85 peer-reviewed articles and book chapters, and books, and holds several patents.",
@@ -223,7 +223,7 @@ export const speakers = [
     role: "Keynote",
     institution: "CSIR-National Chemical Laboratory, Pune, India",
     topic: null,
-    photo: "/photos/speakers/keynotes/Picture5.png",
+    photo: "/photos/speakers/keynotes/Picture5.jpg",
     bio: [
       "Dr.-Ing. Rajesh Kanawade is the head of the Hydrogen Engineering & Photonics Sensor Group, under the Physical and Materials Chemistry Division, CSIR–National Chemical Laboratory (CSIR-NCL), Pune, India. He obtained his M.Sc. in Physics (2006) from Savitribai Phule Pune University and his Doctor of Engineering (Dr.-Ing.) in 2013 from Friedrich-Alexander University Erlangen–Nürnberg, Germany.",
       "His interdisciplinary research integrates optics, photonics, spectroscopy, biomedical imaging, laser instrumentation, Raman spectroscopy, laser-induced breakdown spectroscopy (LIBS), fiber-optic sensing, and optical diagnostics for healthcare and industrial applications. His work has produced important advances in biomedical spectroscopy and laser-based sensing technologies and has been published in leading journals in photonics and biophotonics.",
@@ -235,7 +235,7 @@ export const speakers = [
     role: "Keynote",
     institution: "UniversityChulalongkorn, Thailand",
     topic: null,
-    photo: "/photos/speakers/keynotes/Picture6.png",
+    photo: "/photos/speakers/keynotes/Picture6.jpg",
     bio: [
       "Associate Prof. Dr. Piyasak Chaumpluk is currently a faculty member at the Genetics Program, Department of Botany, Faculty of Science, Chulalongkorn University, where he also serves as the Head of the Laboratory of Plant Transgenic Technology and Biosensor. His research integrates plant science and genetics with cutting-edge biosensor technology to address challenges in agriculture and biosciences.",
       "He finished his B.Sc. at Khon Kaen University, and earned his Master of Agriculture (Plant Pathology) in 1990 and his Doctor of Agriculture (1996), both from Kyoto University. Prior to his current position, he gained valuable international experience as a Researcher at the Iwate Biotechnology Research Center in Japan, where he worked for three years.",
