@@ -37,24 +37,28 @@ function Label({ children }: { children: React.ReactNode }) {
   );
 }
 
-function Bullet({ children }: { children: React.ReactNode }) {
-  return (
-    <li className="grid grid-cols-[0.9rem_1fr] gap-x-2 text-[0.925rem] leading-[1.7] text-ink">
-      <span aria-hidden className="pt-[0.55em] text-faint">
-        <span className="block size-[5px] rounded-full bg-current" />
-      </span>
-      <span>{children}</span>
-    </li>
-  );
-}
-
+/**
+ * A numbered list of people. The number is aria-hidden because the <ol> already
+ * tells a screen reader the position, and reading "one, one, Prof..." is worse
+ * than reading the name. `tabular-nums` and the right-aligned column keep the
+ * names on one left edge once the count passes nine, which it does: the
+ * technical program committee runs to thirty-two.
+ */
 function People({ names }: { names: readonly string[] }) {
   return (
-    <ul className="mt-3 grid gap-y-1.5">
-      {names.map((name) => (
-        <Bullet key={name}>{name}</Bullet>
+    <ol className="mt-3 grid gap-y-1.5">
+      {names.map((name, i) => (
+        <li
+          key={name}
+          className="grid grid-cols-[1.5rem_1fr] gap-x-2 text-[0.925rem] leading-[1.7] text-ink"
+        >
+          <span aria-hidden className="text-right tabular-nums text-faint">
+            {i + 1}.
+          </span>
+          <span>{name}</span>
+        </li>
       ))}
-    </ul>
+    </ol>
   );
 }
 
