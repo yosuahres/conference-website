@@ -107,21 +107,12 @@ export default function CommitteePage() {
           </Roles>
         </section>
 
-        {/* The working groups are short enough to pair up on a wide screen,
-            which keeps the page from becoming a single long column of
-            two-line sections.
-
-            Columns rather than a grid: the groups differ in length, and a grid
-            row is as tall as its tallest cell, so a two-line group sitting
-            beside a six-line one leaves a hole under it. Columns flow instead,
-            and break-inside-avoid is what stops a group being split across the
-            column boundary. */}
-        <div className="mt-7 sm:columns-2 sm:gap-x-10">
+        {/* One column, in the order the secretariat listed them. Pairing them
+            up saves height but costs the reader the running order, and the
+            page is a reference rather than something anyone reads through. */}
+        <div className="mt-7 grid gap-y-7">
           {workingGroups.map((group) => (
-            <section
-              key={group.heading}
-              className="mb-7 break-inside-avoid last:mb-0"
-            >
+            <section key={group.heading}>
               <h3 className="font-display text-[0.975rem] font-semibold tracking-[-0.02em]">
                 {group.heading}
               </h3>
