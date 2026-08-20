@@ -184,7 +184,7 @@ export const speakers = [
     institution:
       "Institut Teknologi Sepuluh Nopember · President of the Indonesia Optical Society (InOS)",
     topic: null,
-    photo: "/photos/speakers/keynotes/Picture2.png",
+    photo: "/photos/speakers/hatta.jpeg",
     bio: [
       "Prof. Agus Muhamad Hatta is Professor of Engineering Physics at the Institut Teknologi Sepuluh Nopember (ITS), Surabaya, where he currently serves as Vice Rector for Research, Innovation, Collaboration, and Alumni Relations.",
       "He finished his undergraduate (S.T., equivalent to B.Eng) and his Master's at ITS, and earned his Ph.D. (2010) from the Photonics Research Centre, Technological University Dublin, Ireland.",
@@ -265,7 +265,7 @@ export const invitedSpeakers = [
     role: "Invited",
     institution: "Universitas of Airlangga, Indonesia",
     topic: null,
-    photo: "/photos/speakers/invited/Picture7.jpg",
+    photo: "/photos/speakers/retna.jpeg",
     bio: [
       "Prof. Retna Apsari graduated in Physics (1991) from Brawijaya University, earned her Master in Physics from Gajah Mada University in 1998, and her Ph.D. in Physics (Laser Biooptics) from the University of Airlangga in 2009. She has authored 127 international papers with a current Scopus h-index of 18, and holds several patents related to diabetes detection systems.",
       "Prof. Retna Apsari is currently appointed as the Dean of the Faculty of Advanced Technology and Multidisciplinary.",
