@@ -728,7 +728,6 @@ export const committee = {
       members: [
         "Prof. Dr. Yulkifli, M.Si. (UNP, Indonesia)",
         "Prof. Dr. Retna Apsari, M.Si. (UNAIR, Indonesia)",
-        "Prof. Deddy Kurniadi (Institut Teknologi Bandung - ITB)",
         "Prof. Dr. Alexander A.P. Iskandar (Bandung Institute of Technology - ITB)",
         "Prof. Dr. Henri Putra Uranus (University of Pelita Harapan - UPH)",
         "Prof. Dr. Hery Suyanto (University of Udayana - UNUD)",
