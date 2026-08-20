@@ -21,16 +21,20 @@ function Marker({ tone = "strong" }: { tone?: "strong" | "soft" }) {
   // Whole class strings per tone rather than overrides appended to a base:
   // `bg-beam` and `bg-beam/55` in one attribute would leave the winner up to
   // the order Tailwind happened to emit them in.
+  // A 20px rule and a 10px gap, because Container is `md:px-10` and the whole
+  // marker has to live inside those 40px. At 30px it keeps 10px of clearance
+  // from the viewport edge through the range where the 1200px max-width is not
+  // yet producing margins of its own.
   const hang =
-    "md:absolute md:right-full md:top-1/2 md:mr-3 md:-translate-y-1/2";
+    "md:absolute md:right-full md:top-1/2 md:mr-2.5 md:-translate-y-1/2";
 
   return (
     <span
       aria-hidden
       className={
         tone === "strong"
-          ? `h-[6px] w-[1.5rem] shrink-0 bg-beam ${hang}`
-          : `h-[5px] w-[1.1rem] shrink-0 bg-beam/55 ${hang}`
+          ? `h-[6px] w-[1.25rem] shrink-0 bg-beam ${hang}`
+          : `h-[5px] w-[0.9rem] shrink-0 bg-beam/55 ${hang}`
       }
     />
   );
