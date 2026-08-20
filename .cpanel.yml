@@ -1,0 +1,44 @@
+---
+# Copied to the root of the `deploy` branch as `.cpanel.yml` by
+# .github/workflows/deploy.yml. cPanel runs these tasks from the clone
+# directory whenever you hit "Deploy HEAD Commit" in Git Version Control.
+#
+# Nothing here builds. The artifact arrives pre-built from GitHub Actions,
+# because `next build` needs more RAM than a shared plan has. These tasks only
+# move files and restart Passenger, which costs almost nothing.
+#
+# Every `api` task is guarded on the directory being present, because the
+# workflow only publishes it when the DEPLOY_API repository variable is set.
+# The same file therefore deploys the web-only first iteration and the later
+# two-app shape, with no edit in between.
+deployment:
+  tasks:
+    - export APPS="$HOME/apps"
+    - /bin/mkdir -p "$APPS"
+
+    # Stage beside the live directories so a failed copy cannot leave a
+    # half-written app being served.
+    - /bin/rm -rf "$APPS/web.new" "$APPS/api.new"
+    - /bin/cp -R web "$APPS/web.new"
+    - if [ -d api ]; then /bin/cp -R api "$APPS/api.new"; fi
+
+    # Carry over the Next image-optimisation cache and both .env files, none of
+    # which live in git.
+    - if [ -d "$APPS/web/apps/web/.next/cache" ]; then /bin/mkdir -p "$APPS/web.new/apps/web/.next" && /bin/cp -R "$APPS/web/apps/web/.next/cache" "$APPS/web.new/apps/web/.next/cache"; fi
+    - if [ -f "$APPS/web/apps/web/.env" ]; then /bin/cp "$APPS/web/apps/web/.env" "$APPS/web.new/apps/web/.env"; fi
+    - if [ -d "$APPS/api.new" ] && [ -f "$APPS/api/.env" ]; then /bin/cp "$APPS/api/.env" "$APPS/api.new/.env"; fi
+
+    # Swap. The window where the app directory does not exist is milliseconds.
+    # A run that ships no api leaves any already-deployed one untouched and
+    # running, rather than deleting it.
+    - /bin/rm -rf "$APPS/web.old" "$APPS/api.old"
+    - if [ -d "$APPS/web" ]; then /bin/mv "$APPS/web" "$APPS/web.old"; fi
+    - /bin/mv "$APPS/web.new" "$APPS/web"
+    - if [ -d "$APPS/api.new" ]; then if [ -d "$APPS/api" ]; then /bin/mv "$APPS/api" "$APPS/api.old"; fi; /bin/mv "$APPS/api.new" "$APPS/api"; fi
+
+    # Passenger watches these files; touching one restarts that app only.
+    - /bin/mkdir -p "$APPS/web/tmp"
+    - /bin/touch "$APPS/web/tmp/restart.txt"
+    - if [ -d "$APPS/api" ]; then /bin/mkdir -p "$APPS/api/tmp" && /bin/touch "$APPS/api/tmp/restart.txt"; fi
+
+    - /bin/rm -rf "$APPS/web.old" "$APPS/api.old"

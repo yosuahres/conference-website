@@ -1,0 +1,11 @@
+User-Agent: *
+Allow: /
+Disallow: /admin
+Disallow: /dashboard
+Disallow: /sign-in
+Disallow: /forgot-password
+Disallow: /reset-password
+Disallow: /verify-email
+
+Host: https://isphoa2026.org
+Sitemap: https://isphoa2026.org/sitemap.xml
