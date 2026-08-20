@@ -38,16 +38,36 @@ function People({ names }: { names: readonly string[] }) {
 }
 
 /**
- * A role and the person holding it. The label column is fixed so that the
- * names line up down the page, and collapses on narrow screens where there is
- * no room for two columns.
+ * Rows of a <Roles> list. Deliberately bare dt/dd rather than a wrapper: the
+ * grid lives on the parent, so the label column sizes itself to the longest
+ * label present and every name in the list still lines up.
  */
 function Role({ role, name }: { role: string; name: string }) {
   return (
-    <div className="grid gap-x-3 text-[0.925rem] leading-[1.7] sm:grid-cols-[8.5rem_1fr]">
+    <>
       <dt className="font-semibold">{role}</dt>
       <dd className="text-ink">{name}</dd>
-    </div>
+    </>
+  );
+}
+
+/**
+ * Two columns from `sm` up, stacked below it, where a long name beside its
+ * label would leave too little room to read.
+ */
+function Roles({
+  className = "",
+  children,
+}: {
+  className?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <dl
+      className={`grid gap-y-1.5 text-[0.925rem] leading-[1.7] sm:grid-cols-[auto_1fr] sm:gap-x-6 ${className}`}
+    >
+      {children}
+    </dl>
   );
 }
 
@@ -67,9 +87,9 @@ export default function CommitteePage() {
         {boards.map((board) => (
           <section key={board.heading} className="mt-7">
             <Label>{board.heading}</Label>
-            <dl className="mt-3">
+            <Roles className="mt-3">
               <Role role="Chair" name={board.chair} />
-            </dl>
+            </Roles>
             <h3 className="mt-4 text-[0.925rem] font-semibold leading-[1.7]">
               Members
             </h3>
@@ -80,11 +100,11 @@ export default function CommitteePage() {
         {/* Organizing committee */}
         <section className="mt-7">
           <Label>{organizing.heading}</Label>
-          <dl className="mt-3 grid gap-y-1.5">
+          <Roles className="mt-3">
             {organizing.roles.map((entry) => (
               <Role key={entry.role} role={entry.role} name={entry.name} />
             ))}
-          </dl>
+          </Roles>
         </section>
 
         {/* The working groups are short enough to pair up on a wide screen,
@@ -106,9 +126,9 @@ export default function CommitteePage() {
                 {group.heading}
               </h3>
               {group.chair ? (
-                <dl className="mt-2">
+                <Roles className="mt-2">
                   <Role role="Chair" name={group.chair} />
-                </dl>
+                </Roles>
               ) : null}
               <People names={group.members} />
             </section>

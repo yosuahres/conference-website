@@ -80,6 +80,7 @@ export const keyDateGroups = [
 
 export const nav = [
   { label: "Home", href: "/" },
+  { label: "Committee", href: "/committee" },
   { label: "Venue", href: "/venue" },
   {
     // No href; this one only opens its dropdown.
@@ -97,7 +98,6 @@ export const nav = [
       { label: "Submission", href: "/submission" },
     ],
   },
-  { label: "Committee", href: "/committee" },
 ] as const;
 
 type Para = readonly (string | { readonly em: string })[];
