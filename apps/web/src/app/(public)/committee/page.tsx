@@ -21,8 +21,8 @@ function Marker({ tone = "strong" }: { tone?: "strong" | "soft" }) {
       aria-hidden
       className={
         tone === "strong"
-          ? "h-[1.05em] w-[4px] shrink-0 bg-beam"
-          : "h-[1.05em] w-[3px] shrink-0 bg-beam/55"
+          ? "h-[1.7em] w-[4px] shrink-0 bg-beam"
+          : "h-[1.5em] w-[3px] shrink-0 bg-beam/55"
       }
     />
   );
