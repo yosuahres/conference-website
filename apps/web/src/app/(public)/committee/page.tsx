@@ -8,9 +8,30 @@ export const metadata = pageMetadata({
   path: "/committee",
 });
 
+/**
+ * The accent bar that marks the start of a section. Sized in `em` so it tracks
+ * the heading it sits against rather than needing a value per heading level.
+ */
+function Marker({ tone = "strong" }: { tone?: "strong" | "soft" }) {
+  // Whole class strings per tone rather than overrides appended to a base:
+  // `bg-beam` and `bg-beam/55` in one attribute would leave the winner up to
+  // the order Tailwind happened to emit them in.
+  return (
+    <span
+      aria-hidden
+      className={
+        tone === "strong"
+          ? "h-[1.05em] w-[4px] shrink-0 bg-beam"
+          : "h-[1.05em] w-[3px] shrink-0 bg-beam/55"
+      }
+    />
+  );
+}
+
 function Label({ children }: { children: React.ReactNode }) {
   return (
-    <h2 className="font-display text-[1.05rem] font-semibold tracking-[-0.02em]">
+    <h2 className="flex items-center gap-2.5 font-display text-[1.2rem] font-semibold tracking-[-0.02em]">
+      <Marker />
       {children}
     </h2>
   );
@@ -113,7 +134,11 @@ export default function CommitteePage() {
         <div className="mt-7 grid gap-y-7">
           {workingGroups.map((group) => (
             <section key={group.heading}>
-              <h3 className="font-display text-[0.975rem] font-semibold tracking-[-0.02em]">
+              {/* A step down from Label: the bar is narrower and dimmer so the
+                  working groups still read as sitting under the committees
+                  above them, not alongside them. */}
+              <h3 className="flex items-center gap-2.5 font-display text-[1.05rem] font-semibold tracking-[-0.02em]">
+                <Marker tone="soft" />
                 {group.heading}
               </h3>
               {group.chair ? (
